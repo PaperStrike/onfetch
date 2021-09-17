@@ -199,7 +199,6 @@ Use `redirect` to redirect the request passed to the link:#callback[reply callba
 ----
 // Redirect the request to '/bar' before reply.
 onfetch('/foo').redirect('/bar').reply((req) => req.url);
-onfetch()
 
 // Logs 'https://localhost/bar'
 fetch('/foo').then(console.log);
