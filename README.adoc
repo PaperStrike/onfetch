@@ -61,7 +61,7 @@ A string matches the request's URL if all the following checks pass:
 
 [source,js]
 ----
-onfetch('/string');
+onfetch('/string').persist();
 
 fetch('/string'); // match
 fetch('/string?query'); // match
@@ -70,7 +70,7 @@ fetch('/string#hash'); // match
 
 [source,js]
 ----
-onfetch('/string?specify-query');
+onfetch('/string?specify-query').persist();
 
 fetch('/string'); // not match
 fetch('/string?other-query'); // not match
@@ -95,7 +95,7 @@ onfetch('', {
   headers: {
     'Content-Type': 'text/plain',
   },
-});
+}).persist();
 
 // not match
 fetch('', { method: 'GET' });
