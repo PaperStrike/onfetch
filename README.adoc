@@ -78,6 +78,8 @@ fetch('/string?specify-query'); // match
 fetch('/string?specify-query#hash'); // match
 ----
 
+The use of link:#persist[`persist()`] allows the above `onfetch` rules to match an unlimited number of times.
+
 [#request-init]
 ==== RequestInit
 :idl-request-init: https://fetch.spec.whatwg.org/#requestinit
