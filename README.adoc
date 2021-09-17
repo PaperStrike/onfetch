@@ -1,5 +1,7 @@
 = onfetch
 :repo: https://github.com/PaperStrike/onfetch
+:q-a: {repo}/discussions/categories/q-a
+:contributing: {repo}/blob/main/.github/CONTRIBUTING.md
 :mdn-api: https://developer.mozilla.org/en-US/docs/Web/API
 
 :mdn-fetch-func: {mdn-api}/WindowOrWorkerGlobalScope/fetch
@@ -9,6 +11,18 @@
 Mock {mdn-fetch-func}[`fetch()`] with native {mdn-request-api}[`Request`] / {mdn-response-api}[`Response`] API.
 
 Works with `node-fetch`, `whatwg-fetch`, `cross-fetch`, and mainly, real browsers.
+
+'''
+
+🐿️ Jump to
+link:#callback[Callback],
+link:#delay[Delay],
+link:#redirect[Redirect],
+link:#times[Times],
+link:#options[Options],
+{q-a}[Q&A],
+or
+{contributing}[Contributing Guide].
 
 [#basic]
 == Basic
@@ -311,13 +325,11 @@ new InterceptRule('').reply((request) => {
 
 [#q-a]
 == Q&A
-:q-a: {repo}/discussions/categories/q-a
 
 Checkout our {q-a}[Q&A Discussions] for your answers. 👍
 
 [#contributing]
 == Contributing
-:contributing: {repo}/blob/main/.github/CONTRIBUTING.md
 
 Checkout our {contributing}[Contributing Guide] please. 👍
 
