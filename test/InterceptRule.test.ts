@@ -91,11 +91,12 @@ test.describe('matching', () => {
       expect(match('abc.foo#hash')).toBeFalsy();
     });
     matchingTest('looser', async ({ createMatchFor }) => {
-      const match = createMatchFor(/\.foo([?#]|$)/);
+      const match = createMatchFor(/^[^?#]*\.foo([?#]|$)/);
       expect(match('abc.foo')).toBeTruthy();
       expect(match('abc.foo?query')).toBeTruthy();
       expect(match('abc.foo#hash')).toBeTruthy();
       expect(match('abc.fooEnd')).toBeFalsy();
+      expect(match('abc?.foo')).toBeFalsy();
     });
   });
 });

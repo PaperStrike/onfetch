@@ -136,7 +136,7 @@ Put it in consideration that {mdn-regexp-api}[`RegExp`] here test against the *e
 ----
 // Use regexp that
 // allows any trailing query string and hash.
-onfetch(/\.foo([?#]|$)/).reply('bar');
+onfetch(/^[^?#]*\.foo([?#]|$)/).reply('bar');
 ----
 
 [#request]
