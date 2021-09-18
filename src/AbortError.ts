@@ -10,11 +10,7 @@ class AbortError extends Error {
 
 const ParsedAbortError: typeof AbortError = (() => {
   if (typeof DOMException !== 'undefined') {
-    return DOMException.bind(
-      null,
-      message,
-      'AbortError',
-    );
+    return DOMException.bind(null, message, 'AbortError');
   }
   return AbortError;
 })();

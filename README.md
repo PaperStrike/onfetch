@@ -307,6 +307,28 @@ new InterceptRule('').reply((request) => {
 })
 ```
 
+### Abort error
+
+Constructor for abort errors. It extends from `Error` and its instance has the `name` property value `AbortError`.
+
+In Browsers, defaults to:
+
+```js
+DOMException.bind(null, 'The user aborted a request.', 'AbortError');
+```
+
+In Node, defaults to:
+
+```js
+class AbortError extends Error {
+  name = 'AbortError';
+
+  constructor() {
+    super('The user aborted a request.');
+  }
+}
+```
+
 ## Q&A
 
 Checkout our [Q&A Discussions][q-a] for your answers. 👍
