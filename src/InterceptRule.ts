@@ -165,9 +165,10 @@ export default class InterceptRule {
       .every(([key, value]) => request[key] === value);
   }
 
-  async apply(request: Request, fetchers: Fetchers): Promise<Response> {
-    this.restApplyTimes -= 1;
-
+  /**
+   * Create response for given request and context.
+   */
+  async createResponseFor(request: Request, fetchers: Fetchers): Promise<Response> {
     const { replier, delayDuration, redirection } = this;
 
     // Throw if no replier provided.
@@ -212,5 +213,31 @@ export default class InterceptRule {
     }
 
     return response;
+  }
+
+  /**
+   * Create response for given request and context. Reduce apply times and throw on abort.
+   */
+  async apply(request: Request, fetchers: Fetchers): Promise<Response> {
+    this.restApplyTimes -= 1;
+
+    const { signal } = request;
+    if (signal?.aborted) {
+      throw new DOMException('The user aborted a request.', 'AbortError');
+    }
+
+    const respondPromise = this.createResponseFor(request, fetchers);
+
+    if (signal) {
+      return Promise.race([
+        respondPromise,
+        new Promise<never>((resolve, reject) => {
+          signal.addEventListener('abort', () => {
+            reject(new DOMException('The user aborted a request.', 'AbortError'));
+          });
+        }),
+      ]);
+    }
+    return respondPromise;
   }
 }
