@@ -16,7 +16,7 @@
 
 配合原生 [`Request`][mdn-request-api] / [`Response`][mdn-response-api] API 模拟 [`fetch()`][mdn-fetch-func] 请求响应。
 
-兼容 [`node-fetch`](<https://github.com/node-fetch/node-fetch>)、[`whatwg-fetch`](<https://github.com/github/fetch>)、[`cross-fetch`](<https://github.com/lquixada/cross-fetch>)、阿巴阿巴，主要兼容现代浏览器。
+支持主流现代浏览器，兼容 [`node-fetch`](<https://github.com/node-fetch/node-fetch>)、[`whatwg-fetch`](<https://github.com/github/fetch>)、[`cross-fetch`](<https://github.com/lquixada/cross-fetch>) 等 Polyfill 库。
 
 ---
 
@@ -40,11 +40,11 @@ import onfetch from 'onfetch';
 
 onfetch('/simple').reply('path');
 
-// Or
+// 或
 onfetch('/post', { method: 'POST' })
   .reply('received');
 
-// Or
+// 或
 onfetch('/down')
   .reply(null, { status: 500 });
 ```
