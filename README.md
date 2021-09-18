@@ -11,7 +11,7 @@
 
 Mock [`fetch()`][mdn-fetch-func] with native [`Request`][mdn-request-api] / [`Response`][mdn-response-api] API.
 
-Works with `node-fetch`, `whatwg-fetch`, `cross-fetch`, and mainly, real browsers.
+Works with [`node-fetch`](https://github.com/node-fetch/node-fetch), [`whatwg-fetch`](https://github.com/github/fetch), [`cross-fetch`](https://github.com/lquixada/cross-fetch), whatever, and mainly, modern browsers.
 
 ---
 
@@ -40,7 +40,8 @@ onfetch('/post', { method: 'POST' })
   .reply('received');
 
 // Or
-onfetch('/down').reply(null, { status: 500 });
+onfetch('/down')
+  .reply(null, { status: 500 });
 ```
 
 In Node, in addition to setting up global [`fetch`][mdn-fetch-func], you also need to set up global [`Headers`][mdn-headers-api], [`Request`][mdn-request-api], and [`Response`][mdn-response-api].
@@ -166,7 +167,7 @@ onfetch('').reply((request, fetchers) => {
 
 ### passThough
 
-You can also use this built-in callback to send requests via the original `fetch`.
+A syntactic sugar for sending requests via the original `fetch`.
 
 ```js
 import onfetch, { passThrough } from 'onfetch';
