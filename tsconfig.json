@@ -9,7 +9,6 @@
     "moduleResolution": "Node",
     "outDir": "./build",
     "skipLibCheck": true,
-    "sourceMap": true,
     "strict": true,
     "target": "ES2018",
     "types": ["mocha"],
