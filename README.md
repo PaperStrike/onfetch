@@ -6,6 +6,9 @@
 [mdn-request-api]: https://developer.mozilla.org/en-US/docs/Web/API/Request
 [mdn-response-api]: https://developer.mozilla.org/en-US/docs/Web/API/Response
 
+[![Build Status](https://github.com/PaperStrike/onfetch/actions/workflows/test.yml/badge.svg)](https://github.com/PaperStrike/onfetch/actions/workflows/test.yml)
+[![npm Package](https://img.shields.io/npm/v/onfetch?logo=npm "onfetch")](https://www.npmjs.com/package/onfetch)
+
 Mock [`fetch()`][mdn-fetch-func] with native [`Request`][mdn-request-api] / [`Response`][mdn-response-api] API.
 
 Works with `node-fetch`, `whatwg-fetch`, `cross-fetch`, and mainly, real browsers.
@@ -31,8 +34,12 @@ Start with `onfetch`, pass the same params as constructing a [`Request`][mdn-req
 import onfetch from 'onfetch';
 
 onfetch('/simple').reply('path');
+
+// Or
 onfetch('/post', { method: 'POST' })
   .reply('received');
+
+// Or
 onfetch('/down').reply(null, { status: 500 });
 ```
 
@@ -76,11 +83,11 @@ The use of [`persist()`](#persist) allows the above `onfetch` rules to match an 
 #### RequestInit
 [idl-request-init]: https://fetch.spec.whatwg.org/#requestinit
 
-The second param, a [`RequestInit`][idl-request-init] object, matches the [`Request`][mdn-request-api] object, when all the checks in the following steps pass:
+The second param, a [`RequestInit`][idl-request-init] object, matches the [`Request`][mdn-request-api], when all the checks in the following steps pass:
 
-1. Deconstruct `headers`, `body`, `window` and the _rest parts_ from the init.
+1. Deconstruct `headers`, `body`, `window` and the _rest parts_ from the [`RequestInit`][idl-request-init] object.
 2. Check if each header in `headers` has a match in the request's headers.
-3. Check if each part in the _rest parts_ has a match in the [`Request`][mdn-request-api] object.
+3. Check if each part in the _rest parts_ has a match in the [`Request`][mdn-request-api].
 
 ```js
 onfetch('', {
@@ -196,7 +203,7 @@ Use `redirect` to redirect the request passed to the [reply callback](#callback)
 onfetch('/foo').redirect('/bar').reply((req) => req.url);
 
 // Logs 'https://localhost/bar'
-fetch('/foo').then(console.log);
+fetch('/foo').then((res) => res.text()).then(console.log);
 ```
 
 The order of `delay`, `redirect`, and `reply` does not affect the result.
@@ -215,6 +222,16 @@ You can specify the number of times to apply the `onfetch` rule via the `times` 
 onfetch('/foo').times(5).reply('bar');
 ```
 
+By default, an `onfetch` rule only applies _once_. When the times ran out, it bypasses the match.
+
+```js
+onfetch('/foo').reply('/bar');
+onfetch('/foo').reply('/baz');
+
+fetch('/foo').then(console.log); // logs bar
+fetch('/foo').then(console.log); // logs baz
+```
+
 You can specify the times at any time as long as you store the reference of the `onfetch` rule somewhere.
 
 ```js
@@ -226,16 +243,6 @@ fetch('/foo'); // match
 onFoo.once();
 
 fetch('/foo'); // match
-```
-
-By default, an `onfetch` rule only applies _once_. When the times ran out, it bypasses the match.
-
-```js
-onfetch('/foo').reply('/bar');
-onfetch('/foo').reply('/baz');
-
-fetch('/foo').then(console.log); // logs bar
-fetch('/foo').then(console.log); // logs baz
 ```
 
 Note that when all the `onfetch` rules do not match a request, that request goes to [`options.defaultRule`](#default-rule).
