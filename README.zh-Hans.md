@@ -306,6 +306,28 @@ new InterceptRule('').reply((request) => {
 })
 ```
 
+### 中止错误
+
+构建中止错误的构造函数。扩展自`Error`，实例的 `name` 属性值为 `AbortError`。
+
+对于浏览器，默认值为：
+
+```js
+DOMException.bind(null, message, 'AbortError');
+```
+
+对于 Node，默认值为：
+
+```js
+class AbortError extends Error {
+  name = 'AbortError';
+
+  constructor() {
+    super(message);
+  }
+}
+```
+
 ## Q&A
 
 请进入 [Q&A 讨论区][q-a] 寻找答案。 👍

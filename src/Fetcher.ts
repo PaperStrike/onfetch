@@ -1,7 +1,9 @@
 import InterceptRule from './InterceptRule';
+import AbortError from './AbortError';
 
 export interface Options {
   defaultRule: InterceptRule;
+  AbortError: typeof AbortError
 }
 
 /**
@@ -18,6 +20,7 @@ export default class Fetcher {
         cause: request,
       });
     }),
+    AbortError,
   };
 
   rules: InterceptRule[] = [];
@@ -28,11 +31,29 @@ export default class Fetcher {
 
   mocked: typeof fetch = async (...argArray: Parameters<typeof fetch>): Promise<Response> => {
     const request = new Request(...argArray);
-    return (this.rules.find((rule) => rule.test(request)) || this.options.defaultRule)
+    const { signal } = request;
+
+    if (signal?.aborted) {
+      throw new this.options.AbortError();
+    }
+
+    const applyPromise = (this.rules.find((rule) => rule.test(request)) || this.options.defaultRule)
       .apply(request, {
         original: this.original,
         mocked: this.mocked,
       });
+
+    if (signal) {
+      return Promise.race([
+        applyPromise,
+        new Promise<never>((resolve, reject) => {
+          signal.addEventListener('abort', () => {
+            reject(new this.options.AbortError());
+          });
+        }),
+      ]);
+    }
+    return applyPromise;
   };
 
   constructor(context: { fetch: typeof fetch }) {
