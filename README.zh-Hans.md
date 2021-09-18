@@ -310,6 +310,13 @@ new InterceptRule('').reply((request) => {
 
 构建中止错误的构造函数。扩展自`Error`，实例的 `name` 属性值为 `AbortError`。
 
+```js
+import onfetch from 'onfetch';
+onfetch.config({
+  AbortError: PutItHere,
+});
+```
+
 对于浏览器，默认值为：
 
 ```js

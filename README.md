@@ -311,6 +311,13 @@ new InterceptRule('').reply((request) => {
 
 Constructor for abort errors. It extends from `Error` and its instance has the `name` property value `AbortError`.
 
+```js
+import onfetch from 'onfetch';
+onfetch.config({
+  AbortError: PutItHere,
+});
+```
+
 In Browsers, defaults to:
 
 ```js
