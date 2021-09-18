@@ -1,6 +1,6 @@
 {
   "name": "onfetch",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Mock fetch() with native Request / Response API",
   "types": "./build/index.d.ts",
   "main": "./build/index.js",
