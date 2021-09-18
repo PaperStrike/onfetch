@@ -20,7 +20,7 @@
     "lint": "eslint .",
     "prepare": "npm run build",
     "test-browser": "playwright-test test/**/*.test.*",
-    "test-node": "mocha --experimental-specifier-resolution=node",
+    "test-node": "mocha --experimental-specifier-resolution=node --experimental-abortcontroller",
     "test": "npm run test-browser && npm run test-node"
   },
   "files": [

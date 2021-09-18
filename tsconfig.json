@@ -15,5 +15,8 @@
     "types": ["web", "mocha"],
     "useDefineForClassFields": true
   },
-  "include": ["./src"]
+  "include": ["./src"],
+  "ts-node": {
+    "transpileOnly": true
+  }
 }
