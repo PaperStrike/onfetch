@@ -1,3 +1,8 @@
+<div align="end"><sub>
+  ENGLISH,
+  <a title="Simplified Chinese" href="README.zh-Hans.md">简体中文</a>
+</sub></div>
+
 # onfetch
 [q-a]: https://github.com/PaperStrike/onfetch/discussions/categories/q-a
 [contributing]: https://github.com/PaperStrike/onfetch/blob/main/.github/CONTRIBUTING.md
@@ -52,6 +57,8 @@ In Node, in addition to setting up global [`fetch`][mdn-fetch-func], you also ne
 How `onfetch` uses your params to match a [`Request`][mdn-request-api].
 
 To keep this simple and efficient, we don't and won't support [`body`][mdn-request-body] matching. You will have to put your own processing code into a [reply callback](#callback) when needed.
+
+Rules without a positive [`times`](#times) match no request.
 
 #### String
 [mdn-url-api]: https://developer.mozilla.org/en-US/docs/Web/API/URL
@@ -223,14 +230,16 @@ You can specify the number of times to apply the `onfetch` rule via the `times` 
 onfetch('/foo').times(5).reply('bar');
 ```
 
+You may have multiple rules matching a request at the same time, but only the first rule will apply.
+
 By default, an `onfetch` rule only applies _once_. When the times ran out, it bypasses the match.
 
 ```js
-onfetch('/foo').reply('/bar');
-onfetch('/foo').reply('/baz');
+onfetch('/foo').reply('/alpha');
+onfetch('/foo').reply('/beta');
 
-fetch('/foo').then(console.log); // logs bar
-fetch('/foo').then(console.log); // logs baz
+fetch('/foo').then(console.log); // logs alpha
+fetch('/foo').then(console.log); // logs beta
 ```
 
 You can specify the times at any time as long as you store the reference of the `onfetch` rule somewhere.
