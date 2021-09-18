@@ -216,7 +216,8 @@ export default class InterceptRule {
   }
 
   /**
-   * Create response for given request and context. Reduce apply times and throw on abort.
+   * Create response for given request and context.
+   * Reduce restApplyTimes and throw an AbortError DOMException on abort.
    */
   async apply(request: Request, fetchers: Fetchers): Promise<Response> {
     this.restApplyTimes -= 1;
