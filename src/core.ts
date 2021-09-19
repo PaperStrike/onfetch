@@ -1,11 +1,15 @@
 import Fetcher, { Options } from './Fetcher';
 import InterceptRule, { passThrough } from './InterceptRule';
+import Client from './lib/sw/Client';
+import Worker from './lib/sw/Worker';
 
 export {
   Fetcher,
   Options,
   InterceptRule,
   passThrough,
+  Client,
+  Worker,
 };
 
 export type OnfetchCall = ((input: RequestInfo | RegExp, init?: RequestInit) => InterceptRule);
