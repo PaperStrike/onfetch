@@ -12,8 +12,16 @@
   },
   "exports": {
     ".": "./build/index.js",
+    "./sw": "./build/sw.js",
     "./core": "./build/core.js",
     "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      ".": ["./build/index.d.ts"],
+      "sw": ["./build/sw.d.ts"],
+      "core": ["./build/core.d.ts"]
+    }
   },
   "scripts": {
     "build": "tsc",
