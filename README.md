@@ -320,7 +320,7 @@ self.addEventListener('message', ({ data }) => {
 });
 ```
 
-You may have noticed that we use `onfetch/sw` both in the page and in the worker. Yes, `onfetch/sw` detects the context itself and runs different code sets.
+You may have noticed that we use `onfetch/sw` both in the page and in the worker. Yes, `onfetch/sw` detects the context itself and runs different necessary code sets.
 
 ## Options
 
