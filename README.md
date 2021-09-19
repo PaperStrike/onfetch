@@ -14,7 +14,7 @@
 [![Build Status](https://github.com/PaperStrike/onfetch/actions/workflows/test.yml/badge.svg)](https://github.com/PaperStrike/onfetch/actions/workflows/test.yml)
 [![npm Package](https://img.shields.io/npm/v/onfetch?logo=npm "onfetch")](https://www.npmjs.com/package/onfetch)
 
-Mock [`fetch()`][mdn-fetch-func] with native [`Request`][mdn-request-api] / [`Response`][mdn-response-api] API.
+Mock [`fetch()`][mdn-fetch-func] with native [`Request`][mdn-request-api] / [`Response`][mdn-response-api] API. Optionally, mock All with [Service Worker](#service-worker).
 
 Works with [`node-fetch`](https://github.com/node-fetch/node-fetch), [`whatwg-fetch`](https://github.com/github/fetch), [`cross-fetch`](https://github.com/lquixada/cross-fetch), whatever, and mainly, modern browsers.
 
@@ -25,6 +25,7 @@ Works with [`node-fetch`](https://github.com/node-fetch/node-fetch), [`whatwg-fe
 [Delay](#delay),
 [Redirect](#redirect),
 [Times](#times),
+[Service Worker](#service-worker),
 [Options](#options),
 [Q&A][q-a],
 or
@@ -281,6 +282,45 @@ Sugar for `rule.times(3)`.
 ### `persist()`
 
 For `rule.times(Infinity)`.
+
+## Service Worker
+[mdn-service-worker-api]: https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API
+[mdn-xml-http-request-api]: https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest
+
+[Service Worker API][mdn-service-worker-api] only works in browsers.
+
+With the help of [Service Worker API][mdn-service-worker-api], you can now mock **all** the resources your page requires, including those don't go with [XMLHttpRequest][mdn-xml-http-request-api] nor [`fetch`][mdn-fetch-func] (e.g., CSS files).
+
+```js
+// In the main browsing context.
+import onfetch from 'onfetch/sw';
+
+onfetch('/script.js').reply('console.log(\'mocked!\')');
+const script = document.createElement('script');
+script.src = '/script.js';
+
+// Logs 'mocked!'
+document.head.append(script);
+```
+
+To enable this feature, import `onfetch/sw` in you service worker.
+
+```js
+// In the service worker.
+import 'onfetch/sw';
+```
+
+Optionally, store a reference of `worker` to disable it at some point.
+
+```js
+import { worker as onfetchWorker } from 'onfetch/sw';
+
+self.addEventListener('message', ({ data }) => {
+  if (data && 'example' in data) onfetchWorker.deactivate();
+});
+```
+
+You may have noticed that we use `onfetch/sw` both in the page and in the worker. Yes, `onfetch/sw` detects the context itself and runs different necessary code sets.
 
 ## Options
 
