@@ -6,10 +6,8 @@ export interface Message {
 
 export interface RequestMessage extends Message {
   request: CloneableRequest;
-  id: number;
 }
 
 export interface ResponseMessage extends Message {
   response: CloneableResponse;
-  id: number;
 }
