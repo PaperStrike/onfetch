@@ -364,9 +364,9 @@ new InterceptRule('').reply((request) => {
 })
 ```
 
-### Abort error
+### Abort Error
 
-Constructor for abort errors. It extends from `Error` and its instance has the `name` property value `AbortError`.
+Constructor for abort errors. It should extend from `Error` and its instance should have the `name` property set to `AbortError`.
 
 ```js
 import onfetch from 'onfetch';

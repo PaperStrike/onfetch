@@ -311,7 +311,7 @@ document.head.append(script);
 import 'onfetch/sw';
 ```
 
-可选地，储存一个对默认导入值的引用，以在某时刻暂停。尽可能同时在客户端调用 `onfetch.useDefault()` 以避免这之间的请求因两端状态不一被错误处理。
+可选地，储存一个对默认导入值的引用，以在某时刻暂停。同时在客户端调用 `onfetch.useDefault()` 可避免这之间的请求因两端状态不一被错误处理。
 
 ```js
 // 在 service worker 中
@@ -363,9 +363,9 @@ new InterceptRule('').reply((request) => {
 })
 ```
 
-### 中止错误
+### AbortError
 
-构建中止错误的构造函数。扩展自`Error`，实例的 `name` 属性值为 `AbortError`。
+构建中止错误的构造函数。应扩展自`Error`，实例的 `name` 属性值应为 `AbortError`。
 
 ```js
 import onfetch from 'onfetch';
@@ -377,7 +377,7 @@ onfetch.config({
 对于浏览器，默认值为：
 
 ```js
-DOMException.bind(null, message, 'AbortError');
+DOMException.bind(null, 'The user aborted a request.', 'AbortError');
 ```
 
 对于 Node，默认值为：
@@ -387,7 +387,7 @@ class AbortError extends Error {
   name = 'AbortError';
 
   constructor() {
-    super(message);
+    super('The user aborted a request.');
   }
 }
 ```
