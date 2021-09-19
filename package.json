@@ -41,7 +41,9 @@
     "fetch",
     "test",
     "testing",
-    "fake",
+    "service",
+    "worker",
+    "server",
     "spy"
   ],
   "author": "PaperStrike",
