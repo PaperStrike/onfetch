@@ -1,5 +1,5 @@
 import InterceptRule from './InterceptRule';
-import AbortError from './AbortError';
+import AbortError from './lib/AbortError';
 
 export interface Options {
   defaultRule: InterceptRule;
