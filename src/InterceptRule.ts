@@ -36,21 +36,17 @@ export default class InterceptRule {
 
   init: RequestInit;
 
-  headersArr: [string, string][];
+  headersArr: [string, string][] = [];
 
   constructor(input: RequestInfo | RegExp, init: RequestInit = {}) {
     this.input = input;
     this.init = init;
 
-    let headers: Iterable<[string, string]>;
     if (init.headers) {
-      headers = new Headers(init.headers);
+      this.headersArr.push(...new Headers(init.headers));
     } else if (input instanceof Request) {
-      headers = input.headers;
-    } else {
-      headers = [];
+      this.headersArr.push(...input.headers);
     }
-    this.headersArr = [...headers];
   }
 
   private delayDuration = 0;
