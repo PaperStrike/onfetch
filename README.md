@@ -293,7 +293,9 @@ With the help of [Service Worker API][mdn-service-worker-api], you can now mock 
 
 ```js
 // In the main browsing context.
-import onfetch from 'onfetch/sw';
+import onfetch from 'onfetch';
+
+onfetch.useServiceWorker();
 
 onfetch('/script.js').reply('console.log(\'mocked!\')');
 const script = document.createElement('script');
@@ -310,17 +312,32 @@ To enable this feature, import `onfetch/sw` in you service worker.
 import 'onfetch/sw';
 ```
 
-Optionally, store a reference of `worker` to disable it at some point.
+Optionally, store a reference of the default import value to disable it at some point. Use `onfetch.useDefault()` in client side at the same time to avoid inconsistent status.
 
 ```js
-import { worker as onfetchWorker } from 'onfetch/sw';
+// In the service worker.
+import onfetchWorker from 'onfetch/sw';
 
 self.addEventListener('message', ({ data }) => {
-  if (data && 'example' in data) onfetchWorker.deactivate();
+  // To re-activate, call `.activate()`.
+  if (data?.example) onfetchWorker.deactivate();
 });
 ```
 
-You may have noticed that we use `onfetch/sw` both in the page and in the worker. Yes, `onfetch/sw` detects the context itself and runs different necessary code sets.
+```js
+// In the main browsing context.
+import onfetch from 'onfetch';
+
+onfetch.useServiceWorker();
+
+window.addEventListener('some-point', () => {
+  window.navigator.serviceWorker.controller
+    .postMessage({
+      example: true,
+    });
+  onfetch.useDefault();
+});
+```
 
 ## Options
 

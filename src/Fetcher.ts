@@ -12,7 +12,7 @@ export interface Options {
  * which will be frequently used if not doing so.
  */
 export default class Fetcher {
-  options: Options = {
+  private readonly options: Options = {
     defaultRule: new InterceptRule('').reply((request) => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore until https://github.com/microsoft/TypeScript/issues/45167
@@ -23,13 +23,15 @@ export default class Fetcher {
     AbortError,
   };
 
-  rules: InterceptRule[] = [];
+  private readonly rules: InterceptRule[] = [];
 
-  context: { fetch: typeof fetch };
+  private context: { fetch: typeof fetch };
 
-  original: typeof fetch;
+  private original: typeof fetch;
 
-  mocked: typeof fetch = async (...argArray: Parameters<typeof fetch>): Promise<Response> => {
+  private readonly mocked: typeof fetch = async (
+    ...argArray: Parameters<typeof fetch>
+  ): Promise<Response> => {
     const request = new Request(...argArray);
     const { signal } = request;
 
@@ -61,25 +63,37 @@ export default class Fetcher {
     this.original = context.fetch;
   }
 
-  addRule = (input: RequestInfo | RegExp, init: RequestInit = {}): InterceptRule => {
+  /**
+   * Adopt another context. Preserve active status.
+   */
+  readonly adopt = (context: { fetch: typeof fetch }): void => {
+    if (this.context === context) return;
+    const wasActive = this.isActive();
+    this.deactivate();
+    this.context = context;
+    this.original = context.fetch;
+    if (wasActive) this.activate();
+  };
+
+  readonly addRule = (input: RequestInfo | RegExp, init: RequestInit = {}): InterceptRule => {
     const rule = new InterceptRule(input, init);
     this.rules.push(rule);
     return rule;
   };
 
-  hasActive = (): boolean => this.rules.some((rule) => rule.isActive());
+  readonly hasActive = (): boolean => this.rules.some((rule) => rule.isActive());
 
-  isActive = (): boolean => this.context.fetch === this.mocked;
+  readonly isActive = (): boolean => this.context.fetch === this.mocked;
 
-  deactivate = (): void => {
+  readonly deactivate = (): void => {
     this.context.fetch = this.original;
   };
 
-  activate = (): void => {
+  readonly activate = (): void => {
     this.context.fetch = this.mocked;
   };
 
-  config = (config: Partial<Options>): void => {
+  readonly config = (config: Partial<Options>): void => {
     Object.assign(this.options, config);
   };
 }

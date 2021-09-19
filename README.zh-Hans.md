@@ -291,8 +291,10 @@ fetch('/foo'); // 回落到默认规则 `defaultRule`
 配合 [Service Worker API][mdn-service-worker-api]，你将可以拦截模拟包括 CSS 文件这类不走 [XMLHttpRequest][mdn-xml-http-request-api]、也不走 [`fetch`][mdn-fetch-func] 的，页面所发送的**所有请求资源**。
 
 ```js
-// 在页面脚本中
-import onfetch from 'onfetch/sw';
+// 在主页面脚本中
+import onfetch from 'onfetch';
+
+onfetch.useServiceWorker();
 
 onfetch('/script.js').reply('console.log(\'mocked!\')');
 const script = document.createElement('script');
@@ -302,24 +304,39 @@ script.src = '/script.js';
 document.head.append(script);
 ```
 
-要使用这个特性，在你的 Service Worker 脚本中引入 `onfetch/sw`。
+要启用这个特性，需在你的 Service Worker 脚本中引入 `onfetch/sw`。
 
 ```js
 // 在 service worker 中
 import 'onfetch/sw';
 ```
 
-可选地，储存一个对 `worker` 的引用以在某时刻暂停。
+可选地，储存一个对默认导入值的引用，以在某时刻暂停。尽可能同时在客户端调用 `onfetch.useDefault()` 以避免这之间的请求因两端状态不一被错误处理。
 
 ```js
-import { worker as onfetchWorker } from 'onfetch/sw';
+// 在 service worker 中
+import onfetchWorker from 'onfetch/sw';
 
 self.addEventListener('message', ({ data }) => {
-  if (data && 'example' in data) onfetchWorker.deactivate();
+  // 可以使用 `.activate()` 重新启用
+  if (data?.example) onfetchWorker.deactivate();
 });
 ```
 
-你大概已经注意到主页面和 Service Worker 中我们使用的都是 `onfetch/sw`。 没错，`onfetch/sw` 会自动检测调用环境运行不同所需代码。
+```js
+// 在主页面脚本中
+import onfetch from 'onfetch';
+
+onfetch.useServiceWorker();
+
+window.addEventListener('某时刻', () => {
+  window.navigator.serviceWorker.controller
+    .postMessage({
+      example: true,
+    });
+  onfetch.useDefault();
+});
+```
 
 ## 选项
 
