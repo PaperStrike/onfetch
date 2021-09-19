@@ -14,21 +14,22 @@
 [![CI 状态](https://github.com/PaperStrike/onfetch/actions/workflows/test.yml/badge.svg)](https://github.com/PaperStrike/onfetch/actions/workflows/test.yml)
 [![npm 包](https://img.shields.io/npm/v/onfetch?logo=npm "onfetch")](https://www.npmjs.com/package/onfetch)
 
-配合原生 [`Request`][mdn-request-api] / [`Response`][mdn-response-api] API 模拟 [`fetch()`][mdn-fetch-func] 请求响应。
+配合原生 [`Request`][mdn-request-api] / [`Response`][mdn-response-api] API 模拟 [`fetch()`][mdn-fetch-func] 请求响应。可选地，配合 [Service Worker](#service-worker) 模拟**所有**请求响应。
 
 支持主流现代浏览器，兼容 [`node-fetch`](<https://github.com/node-fetch/node-fetch>)、[`whatwg-fetch`](<https://github.com/github/fetch>)、[`cross-fetch`](<https://github.com/lquixada/cross-fetch>) 等 Polyfill 库。
 
 ---
 
 🐿️ 跳转到
-[回调](#回调),
-[延时](#延时),
-[重定向](#重定向),
-[次数](#次数),
-[选项](#选项),
-[Q&A][q-a],
+[回调](#回调)，
+[延时](#延时)，
+[重定向](#重定向)，
+[次数](#次数)，
+[Service Worker](#service-worker)，
+[选项](#选项)，
+[Q&A][q-a]，
 或
-[Contributing Guide][contributing].
+[Contributing Guide][contributing]。
 
 ## 概述
 [mdn-headers-api]: https://developer.mozilla.org/en-US/docs/Web/API/Headers
@@ -280,6 +281,45 @@ fetch('/foo'); // 回落到默认规则 `defaultRule`
 ### `persist()`
 
 `rule.times(Infinity)`。
+
+## Service Worker
+[mdn-service-worker-api]: https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API
+[mdn-xml-http-request-api]: https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest
+
+只有浏览器支持 [Service Worker API][mdn-service-worker-api]。
+
+配合 [Service Worker API][mdn-service-worker-api]，你将可以拦截模拟包括 CSS 文件这类不走 [XMLHttpRequest][mdn-xml-http-request-api]、也不走 [`fetch`][mdn-fetch-func] 的，页面所发送的**所有请求资源**。
+
+```js
+// 在页面脚本中
+import onfetch from 'onfetch/sw';
+
+onfetch('/script.js').reply('console.log(\'mocked!\')');
+const script = document.createElement('script');
+script.src = '/script.js';
+
+// 输出 'mocked!'
+document.head.append(script);
+```
+
+要使用这个特性，在你的 Service Worker 脚本中引入 `onfetch/sw`。
+
+```js
+// 在 service worker 中
+import 'onfetch/sw';
+```
+
+可选地，储存一个对 `worker` 的引用以在某时刻暂停。
+
+```js
+import { worker as onfetchWorker } from 'onfetch/sw';
+
+self.addEventListener('message', ({ data }) => {
+  if (data && 'example' in data) onfetchWorker.deactivate();
+});
+```
+
+你大概已经注意到主页面和 Service Worker 我们使用的都是 `onfetch/sw`。 没错，`onfetch/sw` 会自己检测调用环境运行不同所需代码。
 
 ## 选项
 

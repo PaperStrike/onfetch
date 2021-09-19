@@ -1,7 +1,7 @@
 {
   "name": "onfetch",
   "version": "0.2.1",
-  "description": "Mock fetch() with native Request / Response API",
+  "description": "Mock fetch() with native Request / Response API. Optionally, mock All with Service Worker",
   "types": "./build/index.d.ts",
   "main": "./build/index.js",
   "type": "module",
