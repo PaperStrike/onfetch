@@ -19,13 +19,12 @@ export default class Client {
    * For received requests, message to the service worker.
    */
   fetch = async (...args: Parameters<typeof fetch>): Promise<Response> => {
-    const request = new Request(...args);
     const { controller } = this.workerContainer;
     if (!controller) {
-      throw new Error('Server not ready');
+      throw new Error('No active service worker found');
     }
     controller.postMessage({
-      request: await toCloneable(request),
+      request: await toCloneable(new Request(...args)),
       id: this.fetchResolveList.length,
     });
     return new Promise<Response>((resolve) => {
@@ -50,14 +49,12 @@ export default class Client {
   onRequestMessage = async (
     event: MessageEvent<RequestMessage>,
   ): Promise<void> => {
-    const { data: { request, id } } = event;
-    const response = await this.fetch(request.url, request);
-    const { controller } = this.workerContainer;
-    if (!controller) {
-      throw new Error('Server not ready');
+    const { source, data: { request, id } } = event;
+    if (!source) {
+      throw new Error('Request came from unknown source');
     }
-    controller.postMessage({
-      response: await toCloneable(response),
+    source.postMessage({
+      response: await toCloneable(await this.fetch(request.url, request)),
       id,
     });
   };
@@ -70,7 +67,9 @@ export default class Client {
   ): Promise<void> => {
     const { data: { response, id } } = event;
     const resolve = this.fetchResolveList[id];
-    if (!resolve) return;
+    if (!resolve) {
+      throw new Error('Response came for unknown request');
+    }
     resolve(new Response(response.body, response));
     this.fetchResolveList[id] = null;
   };

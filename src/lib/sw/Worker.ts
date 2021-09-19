@@ -19,22 +19,19 @@ export default class Worker {
   /**
    * For captured requests, message back to the client.
    */
-  onFetch = (event: FetchEvent): void => {
-    const respondPromise = (async () => {
-      const client = await this.scope.clients.get(event.clientId);
-      if (!client) {
-        throw new Error('No client matched');
-      }
-      client.postMessage({
-        request: await toCloneable(event.request),
-        id: this.onFetchResolveList.length,
-      });
-      return new Promise<Response>((resolve) => {
-        this.onFetchResolveList.push(resolve);
-      });
-    })();
-    event.respondWith(respondPromise);
-  };
+  onFetch = (event: FetchEvent): void => event.respondWith((async () => {
+    const client = await this.scope.clients.get(event.clientId);
+    if (!client) {
+      throw new Error('No client matched');
+    }
+    client.postMessage({
+      request: await toCloneable(event.request),
+      id: this.onFetchResolveList.length,
+    });
+    return new Promise<Response>((resolve) => {
+      this.onFetchResolveList.push(resolve);
+    });
+  })());
 
   onMessage = (event: ExtendableMessageEvent): void => {
     if (event.data && 'request' in event.data) {
