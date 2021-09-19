@@ -82,7 +82,7 @@ export default class Client {
   }
 
   /**
-   * Stop receiving messages.
+   * Stop receiving worker messages.
    */
   deactivate(): void {
     this.workerContainer.removeEventListener('message', this.onMessage);
@@ -90,7 +90,7 @@ export default class Client {
   }
 
   /**
-   * Start receiving messages.
+   * Start receiving worker messages.
    */
   activate(): void {
     this.workerContainer.addEventListener('message', this.onMessage);
