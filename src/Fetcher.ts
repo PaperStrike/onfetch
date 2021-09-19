@@ -6,6 +6,8 @@ export interface Options {
   AbortError: typeof AbortError
 }
 
+export type Context = { fetch: typeof fetch };
+
 /**
  * Generate the mocked fetch with given context.
  * Multiple arrow functions are used to bypass `.bind(this)`
@@ -25,7 +27,7 @@ export default class Fetcher {
 
   private readonly rules: InterceptRule[] = [];
 
-  private context: { fetch: typeof fetch };
+  private context: Context;
 
   private original: typeof fetch;
 
@@ -58,7 +60,7 @@ export default class Fetcher {
     return applyPromise;
   };
 
-  constructor(context: { fetch: typeof fetch }) {
+  constructor(context: Context) {
     this.context = context;
     this.original = context.fetch;
   }
@@ -66,7 +68,7 @@ export default class Fetcher {
   /**
    * Adopt another context. Preserve active status.
    */
-  readonly adopt = (context: { fetch: typeof fetch }): void => {
+  readonly adopt = (context: Context): void => {
     if (this.context === context) return;
     const wasActive = this.isActive();
     this.deactivate();
