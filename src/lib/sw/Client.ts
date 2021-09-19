@@ -15,6 +15,9 @@ export default class Client {
 
   fetchResolveList: (((res: Response) => void) | null)[] = [];
 
+  /**
+   * For received requests, message to the service worker.
+   */
   fetch = async (...args: Parameters<typeof fetch>): Promise<Response> => {
     const request = new Request(...args);
     const { controller } = this.workerContainer;
@@ -41,6 +44,9 @@ export default class Client {
     }
   };
 
+  /**
+   * For messaged requests, send to the receiver.
+   */
   onRequestMessage = async (
     event: MessageEvent<RequestMessage>,
   ): Promise<void> => {
@@ -56,6 +62,9 @@ export default class Client {
     });
   };
 
+  /**
+   * For messaged responses, treat as a previous received request's response.
+   */
   onResponseMessage = async (
     event: MessageEvent<ResponseMessage>,
   ): Promise<void> => {
@@ -72,11 +81,17 @@ export default class Client {
     return this.addedListeners;
   }
 
+  /**
+   * Stop receiving messages.
+   */
   deactivate(): void {
     this.workerContainer.removeEventListener('message', this.onMessage);
     this.addedListeners = false;
   }
 
+  /**
+   * Start receiving messages.
+   */
   activate(): void {
     this.workerContainer.addEventListener('message', this.onMessage);
     this.addedListeners = true;

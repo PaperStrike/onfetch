@@ -16,6 +16,9 @@ export default class Worker {
 
   onFetchResolveList: (((res: Response) => void) | null)[] = [];
 
+  /**
+   * For captured requests, message back to the client.
+   */
   onFetch = (event: FetchEvent): void => {
     const respondPromise = (async () => {
       const client = await this.scope.clients.get(event.clientId);
@@ -44,6 +47,9 @@ export default class Worker {
     }
   };
 
+  /**
+   * For messaged requests, respond with real responses.
+   */
   onRequestMessage = async (
     event: Omit<ExtendableMessageEvent, 'data'> & { data: RequestMessage },
   ): Promise<void> => {
@@ -57,6 +63,9 @@ export default class Worker {
     });
   };
 
+  /**
+   * For messaged responses, treat as a previous captured request's response.
+   */
   onResponseMessage = async (
     event: Omit<ExtendableMessageEvent, 'data'> & { data: ResponseMessage },
   ): Promise<void> => {
@@ -75,12 +84,18 @@ export default class Worker {
     return this.addedListeners;
   }
 
+  /**
+   * Stop capturing requests and receiving messages.
+   */
   deactivate(): void {
     this.scope.removeEventListener('fetch', this.onFetch);
     this.scope.removeEventListener('message', this.onMessage);
     this.addedListeners = false;
   }
 
+  /**
+   * Start capturing requests and receiving messages.
+   */
   activate(): void {
     this.scope.addEventListener('fetch', this.onFetch);
     this.scope.addEventListener('message', this.onMessage);
