@@ -188,7 +188,7 @@ onfetch('/use-original').reply(passThrough);
 onfetch('').delay(200).reply('');
 ```
 
-`delay`、`redirect`、和 `reply` 的顺序不影响结果。
+`delay` 和 `reply` 的顺序不影响结果。
 
 ```js
 // 效果一致
@@ -203,23 +203,28 @@ onfetch('').delay(200).delay(300).delay(-100).reply('');
 ```
 
 ## 重定向
+[redirect-status]: https://fetch.spec.whatwg.org/#redirect-status
+[mdn-response-redirect]: https://developer.mozilla.org/en-US/docs/Web/API/Response/redirect
+[mdn-request-redirect]: https://developer.mozilla.org/en-US/docs/Web/API/Request/redirect
+[mdn-response-redirected]: https://developer.mozilla.org/en-US/docs/Web/API/Response/redirected
 
-使用 `redirect` 可重定向传递给[响应回调](#回调)的请求，更改空 URL 的响应的 URL。
+响应一个有[重定向状态码][redirect-status]的 [`Response`][mdn-response-api] 可重定向请求。你可以使用 [`Response.redirect`][mdn-response-redirect] 构建一个。
 
 ```js
-// 在响应前将请求 URL 更改为 '/bar'
-onfetch('/foo').redirect('/bar').reply((req) => req.url);
+// 重定向到 '/bar'
+onfetch('/foo').reply(Response.redirect('bar'));
 
-// 输出 'https://localhost/bar'
+// `/bar` 回应 `redirected`
+onfetch('/bar').reply('redirected');
+
+// 输出 'redirected'
 fetch('/foo').then((res) => res.text()).then(console.log);
 ```
 
-`delay`、`redirect`、和 `reply` 的顺序不影响结果。
+### 局限
 
-```js
-// 效果一致
-onfetch('/foo').reply((req) => req.url).redirect('/bar');
-```
+- 在**非** [Service Worker 模式](#service-worker)下，重定向一个 [`redirect`][mdn-request-redirect] 属性值不为 `follow` 的 [`Request`][mdn-request-api] 请求将使原 fetch 抛出一个 `TypeError` 错误。
+- 在**非** [Service Worker 模式](#service-worker)下，重定向过的 [`Response`][mdn-response-api] 正确取值的 [`redirected`][mdn-response-redirected] 属性设置在该响应对象本身上。通过原型 prototype 读取将返回错误值。
 
 ## 次数
 
