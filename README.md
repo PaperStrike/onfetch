@@ -398,6 +398,20 @@ class AbortError extends Error {
 }
 ```
 
+### Bypass Redirect
+[mdn-response-url]: https://developer.mozilla.org/en-US/docs/Web/API/Response/url
+
+Set this to `true` to bypass `onfetch` [redirection](#redirect).
+
+```js
+import onfetch from 'onfetch';
+onfetch.config({
+  bypassRedirect: true, // or false
+});
+```
+
+In [service worker mode](#service-worker), this defaults to `true`, as the browser will handle the redirect on its own. Setting this option back to `false` will not only give you back the [redirect limitations](#limitations), but also an incorrect [`Response.url`][mdn-response-url].
+
 ## Q&A
 
 Checkout our [Q&A Discussions][q-a] for your answers. 👍

@@ -397,6 +397,20 @@ class AbortError extends Error {
 }
 ```
 
+### 跳过重定向
+[mdn-response-url]: https://developer.mozilla.org/en-US/docs/Web/API/Response/url
+
+将此设为 `true` 可跳过 `onfetch` 的[重定向](#重定向)。
+
+```js
+import onfetch from 'onfetch';
+onfetch.config({
+  bypassRedirect: true, // 或 false
+});
+```
+
+在 [service worker 模式](#service-worker) 下，此选项默认为 `true`，因为浏览器会自己处理重定向。在该模式下将此选项设回 `false` 不但会带回[重定向局限](#局限)，还会得到错误取值的 [`Response.url`][mdn-response-url]。
+
 ## Q&A
 
 请进入 [Q&A 讨论区][q-a] 寻找答案。 👍

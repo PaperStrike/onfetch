@@ -3,7 +3,8 @@ import AbortError from './lib/AbortError';
 
 export interface Options {
   defaultRule: InterceptRule;
-  AbortError: typeof AbortError
+  AbortError: typeof AbortError;
+  bypassRedirect: boolean;
 }
 
 export type Context = { fetch: typeof fetch };
@@ -23,6 +24,7 @@ export default class Fetcher {
       });
     }),
     AbortError,
+    bypassRedirect: false,
   };
 
   private readonly rules: InterceptRule[] = [];
@@ -50,6 +52,10 @@ export default class Fetcher {
         mocked: this.mocked,
       })
       .then((response) => {
+        if (this.options.bypassRedirect) {
+          return response;
+        }
+
         /**
          * @see [A redirect status | Fetch Standard]{@link https://fetch.spec.whatwg.org/#redirect-status}
          */

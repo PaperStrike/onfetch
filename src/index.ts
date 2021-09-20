@@ -15,10 +15,16 @@ const onfetch: Onfetch & {
       if (!client) client = new Client(window.navigator.serviceWorker);
       client.activate();
       onfetch.adopt(client);
+      onfetch.config({
+        bypassRedirect: true,
+      });
     },
     useDefault() {
       if (client) client.deactivate();
       onfetch.adopt(globalThis);
+      onfetch.config({
+        bypassRedirect: false,
+      });
     },
   },
 );
