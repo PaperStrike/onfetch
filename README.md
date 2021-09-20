@@ -208,6 +208,7 @@ onfetch('').delay(200).delay(300).delay(-100).reply('');
 [mdn-response-redirect]: https://developer.mozilla.org/en-US/docs/Web/API/Response/redirect
 [mdn-request-redirect]: https://developer.mozilla.org/en-US/docs/Web/API/Request/redirect
 [mdn-response-redirected]: https://developer.mozilla.org/en-US/docs/Web/API/Response/redirected
+[mdn-response-url]: https://developer.mozilla.org/en-US/docs/Web/API/Response/url
 
 Use a [`Response`][mdn-response-api] object that has [a redirect status][redirect-status] to redirect requests. You can use [`Response.redirect`][mdn-response-redirect] to construct a such object.
 
@@ -225,7 +226,7 @@ fetch('/foo').then((res) => res.text()).then(console.log);
 ### Limitations
 
 - In Non-[Service Worker Mode](#service-worker), redirecting a [`Request`][mdn-request-api] with [`redirect`][mdn-request-redirect] set to a value other than `follow` will fail the fetch with a `TypeError`.
-- In Non-[Service Worker Mode](#service-worker), a redirected [`Response`][mdn-response-api] only has the correct [`redirected`][mdn-response-redirected] property defined on the response object itself. Reading it via the prototype will give you an incorrect value.
+- In Non-[Service Worker Mode](#service-worker), a redirected [`Response`][mdn-response-api] only has the correct [`redirected`][mdn-response-redirected] and [`url`][mdn-response-url] properties defined on the response object itself. Reading them via the prototype will give you incorrect values.
 
 ## Times
 
@@ -399,7 +400,6 @@ class AbortError extends Error {
 ```
 
 ### Bypass Redirect
-[mdn-response-url]: https://developer.mozilla.org/en-US/docs/Web/API/Response/url
 
 Set this to `true` to bypass `onfetch` [redirection](#redirect).
 
@@ -410,7 +410,7 @@ onfetch.config({
 });
 ```
 
-In [service worker mode](#service-worker), this defaults to `true`, as the browser will handle the redirect on its own. Setting this option back to `false` will give you back not only the [redirect limitations](#limitations), but also an incorrect [`Response.url`][mdn-response-url].
+In [service worker mode](#service-worker), this defaults to `true`, as the browser will handle the redirect on its own. So we can overcome some [redirect limitations](#limitations).
 
 ## Q&A
 

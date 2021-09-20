@@ -207,6 +207,7 @@ onfetch('').delay(200).delay(300).delay(-100).reply('');
 [mdn-response-redirect]: https://developer.mozilla.org/en-US/docs/Web/API/Response/redirect
 [mdn-request-redirect]: https://developer.mozilla.org/en-US/docs/Web/API/Request/redirect
 [mdn-response-redirected]: https://developer.mozilla.org/en-US/docs/Web/API/Response/redirected
+[mdn-response-url]: https://developer.mozilla.org/en-US/docs/Web/API/Response/url
 
 使用具有[重定向状态码][redirect-status]的 [`Response`][mdn-response-api] 对象来重定向请求。你可以使用[`Response.redirect`][mdn-response-redirect] 来构建一个这样的对象。
 
@@ -224,7 +225,7 @@ fetch('/foo').then((res) => res.text()).then(console.log);
 ### 局限
 
 - 在**非** [Service Worker 模式](#service-worker)下，重定向一个 [`redirect`][mdn-request-redirect] 属性值不为 `follow` 的 [`Request`][mdn-request-api] 请求将使原 fetch 抛出一个 `TypeError` 错误。
-- 在**非** [Service Worker 模式](#service-worker)下，重定向过的 [`Response`][mdn-response-api] 正确取值的 [`redirected`][mdn-response-redirected] 属性设置在该响应对象本身上。通过原型 prototype 读取将返回错误值。
+- 在**非** [Service Worker 模式](#service-worker)下，重定向过的 [`Response`][mdn-response-api] 正确取值的 [`redirected`][mdn-response-redirected] 和 [`url`][mdn-response-url] 属性设置在该响应对象本身上。通过原型 prototype 读取将返回错误值。
 
 ## 次数
 
@@ -398,7 +399,6 @@ class AbortError extends Error {
 ```
 
 ### 跳过重定向
-[mdn-response-url]: https://developer.mozilla.org/en-US/docs/Web/API/Response/url
 
 将此设为 `true` 可跳过 `onfetch` 的[重定向](#重定向)。
 
@@ -409,7 +409,7 @@ onfetch.config({
 });
 ```
 
-在 [service worker 模式](#service-worker) 下，此选项默认为 `true`，因为浏览器会自己处理重定向。在该模式下将此选项设回 `false` 不但会带回[重定向局限](#局限)，还会得到错误取值的 [`Response.url`][mdn-response-url]。
+在 [service worker 模式](#service-worker) 下，此选项默认为 `true`，因为浏览器会自己处理重定向。我们也因此可以克服一些[重定向限制](#局限)。
 
 ## Q&A
 
