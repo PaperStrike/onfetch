@@ -208,7 +208,7 @@ onfetch('').delay(200).delay(300).delay(-100).reply('');
 [mdn-request-redirect]: https://developer.mozilla.org/en-US/docs/Web/API/Request/redirect
 [mdn-response-redirected]: https://developer.mozilla.org/en-US/docs/Web/API/Response/redirected
 
-响应一个有[重定向状态码][redirect-status]的 [`Response`][mdn-response-api] 可重定向请求。你可以使用 [`Response.redirect`][mdn-response-redirect] 构建一个。
+使用具有[重定向状态码][redirect-status]的 [`Response`][mdn-response-api] 对象来重定向请求。你可以使用[`Response.redirect`][mdn-response-redirect] 来构建一个这样的对象。
 
 ```js
 // 重定向到 '/bar'

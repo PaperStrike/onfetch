@@ -209,7 +209,7 @@ onfetch('').delay(200).delay(300).delay(-100).reply('');
 [mdn-request-redirect]: https://developer.mozilla.org/en-US/docs/Web/API/Request/redirect
 [mdn-response-redirected]: https://developer.mozilla.org/en-US/docs/Web/API/Response/redirected
 
-Respond with a [`Response`][mdn-response-api] that has [a redirect status][redirect-status] to redirect requests. You can use [`Response.redirect`][mdn-response-redirect] to construct one.
+Use a [`Response`][mdn-response-api] object that has [a redirect status][redirect-status] to redirect requests. You can use [`Response.redirect`][mdn-response-redirect] to construct a such object.
 
 ```js
 // Redirect to '/bar'.
