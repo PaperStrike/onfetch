@@ -31,7 +31,7 @@ export default class Fetcher {
 
   private original: typeof fetch;
 
-  private readonly mocked: typeof fetch = async (
+  readonly mocked: typeof fetch = async (
     ...argArray: Parameters<typeof fetch>
   ): Promise<Response> => {
     const request = new Request(...argArray);
@@ -41,15 +41,45 @@ export default class Fetcher {
       throw new this.options.AbortError();
     }
 
-    const applyPromise = (this.rules.find((rule) => rule.test(request)) || this.options.defaultRule)
+    let redirected = false;
+    const respondPromise = (
+      this.rules.find((rule) => rule.test(request)) || this.options.defaultRule
+    )
       .apply(request, {
         original: this.original,
         mocked: this.mocked,
+      })
+      .then((response) => {
+        /**
+         * @see [A redirect status | Fetch Standard]{@link https://fetch.spec.whatwg.org/#redirect-status}
+         */
+        if (![301, 302, 303, 307, 308].includes(response.status)) {
+          return response;
+        }
+        if (request.redirect !== 'follow') {
+          throw new TypeError('Redirect mode not supported');
+        }
+        const locationString = response.headers.get('location');
+        if (locationString === null) {
+          return response;
+        }
+        const location = new URL(locationString, request.url);
+        if (!location.hash) location.hash = new URL(request.url).hash;
+        redirected = true;
+        return this.mocked(new Request(location.href, request));
+      })
+      .then((response) => {
+        if (redirected && !response.redirected) {
+          Object.defineProperty(response, 'redirected', {
+            value: true,
+          });
+        }
+        return response;
       });
 
     if (signal) {
       return Promise.race([
-        applyPromise,
+        respondPromise,
         new Promise<never>((resolve, reject) => {
           signal.addEventListener('abort', () => {
             reject(new this.options.AbortError());
@@ -57,7 +87,7 @@ export default class Fetcher {
         }),
       ]);
     }
-    return applyPromise;
+    return respondPromise;
   };
 
   constructor(context: Context) {
