@@ -410,7 +410,7 @@ onfetch.config({
 });
 ```
 
-In [service worker mode](#service-worker), this defaults to `true`, as the browser will handle the redirect on its own. Setting this option back to `false` will not only give you back the [redirect limitations](#limitations), but also an incorrect [`Response.url`][mdn-response-url].
+In [service worker mode](#service-worker), this defaults to `true`, as the browser will handle the redirect on its own. Setting this option back to `false` will give you back not only the [redirect limitations](#limitations), but also an incorrect [`Response.url`][mdn-response-url].
 
 ## Q&A
 
