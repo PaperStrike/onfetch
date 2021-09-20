@@ -189,7 +189,7 @@ onfetch('/use-original').reply(passThrough);
 onfetch('').delay(200).reply('');
 ```
 
-The order of `delay`, `redirect`, and `reply` does not affect the result.
+The order of `delay` and `reply` does not affect the result.
 
 ```js
 // Same effect.
@@ -204,23 +204,28 @@ onfetch('').delay(200).delay(300).delay(-100).reply('');
 ```
 
 ## Redirect
+[redirect-status]: https://fetch.spec.whatwg.org/#redirect-status
+[mdn-response-redirect]: https://developer.mozilla.org/en-US/docs/Web/API/Response/redirect
+[mdn-request-redirect]: https://developer.mozilla.org/en-US/docs/Web/API/Request/redirect
+[mdn-response-redirected]: https://developer.mozilla.org/en-US/docs/Web/API/Response/redirected
 
-Use `redirect` to redirect the request passed to the [reply callback](#callback), or change the response' URL if no callback provided.
+Respond with a [`Response`][mdn-response-api] that has [a redirect status][redirect-status] to redirect requests. You can use [`Response.redirect`][mdn-response-redirect] to construct one.
 
 ```js
-// Redirect the request to '/bar' before reply.
-onfetch('/foo').redirect('/bar').reply((req) => req.url);
+// Redirect to '/bar'.
+onfetch('/foo').reply(Response.redirect('bar'));
 
-// Logs 'https://localhost/bar'
+// `/bar` respond with `redirected`.
+onfetch('/bar').reply('redirected');
+
+// Logs 'redirected'
 fetch('/foo').then((res) => res.text()).then(console.log);
 ```
 
-The order of `delay`, `redirect`, and `reply` does not affect the result.
+### Limitations
 
-```js
-// Same effect.
-onfetch('/foo').reply((req) => req.url).redirect('/bar');
-```
+- In Non-[Service Worker Mode](#service-worker), redirecting a [`Request`][mdn-request-api] with [`redirect`][mdn-request-redirect] set to a value other than `follow` will fail the fetch with a `TypeError`.
+- In Non-[Service Worker Mode](#service-worker), a redirected [`Response`][mdn-response-api] only has the correct [`redirected`][mdn-response-redirected] property defined on the response object itself. Reading it via the prototype will give you an incorrect value.
 
 ## Times
 

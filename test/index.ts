@@ -2,12 +2,18 @@ import fixtureWrap from 'playwright-fixtures';
 import expect from 'expect';
 import * as nodeFetch from 'node-fetch';
 
+// Here until https://github.com/node-fetch/node-fetch/pull/1169
+declare class RealNodeResponse extends nodeFetch.Response {
+  static redirect(url: string | URL, status?: number): Response;
+}
+
 // Polyfills for Node environment.
 if (typeof fetch === 'undefined' && typeof nodeFetch !== 'undefined') {
   const { Request, Headers, Response } = nodeFetch;
   const baseURL = 'https://localhost/';
   Object.assign(globalThis, {
     fetch: nodeFetch.default,
+    Headers,
     Request: new Proxy(Request, {
       construct(Target, [input, init]: ConstructorParameters<typeof Request>) {
         if (typeof input === 'string') {
@@ -16,8 +22,16 @@ if (typeof fetch === 'undefined' && typeof nodeFetch !== 'undefined') {
         return new Target(input, init);
       },
     }),
-    Headers,
-    Response,
+    Response: new Proxy(Response as typeof RealNodeResponse, {
+      get(Target: typeof RealNodeResponse, key: keyof typeof Target) {
+        if (key !== 'redirect') return Target[key];
+        return new Proxy(Target[key], {
+          apply(target, thisArg, [url, status]: Parameters<typeof Target['redirect']>) {
+            return target.apply(thisArg, [new URL(url, baseURL).href, status]);
+          },
+        });
+      },
+    }),
   });
 }
 

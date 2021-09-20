@@ -39,4 +39,25 @@ fetcherTest.describe('mocked fetch', () => {
       expect(rule.isActive()).toBeFalsy();
     });
   });
+
+  fetcherTest.describe('redirect', () => {
+    fetcherTest('simple', async ({ fetcher }) => {
+      fetcher.addRule('/from').reply(Response.redirect('/to'));
+      fetcher.addRule('/to').reply('redirected');
+      await (expect(fetcher.mocked('/from').then((res) => res.text())))
+        .resolves.toBe('redirected');
+    });
+    fetcherTest('keep original hash', async ({ fetcher }) => {
+      fetcher.addRule('/bring').reply(Response.redirect('/to'));
+      fetcher.addRule('/to').reply((req) => new URL(req.url).hash);
+      await (expect(fetcher.mocked('/bring#hash').then((res) => res.text())))
+        .resolves.toBe('#hash');
+    });
+    fetcherTest('keep redirection hash', async ({ fetcher }) => {
+      fetcher.addRule('/bring').reply(Response.redirect('/to#new-hash'));
+      fetcher.addRule('/to').reply((req) => new URL(req.url).hash);
+      await (expect(fetcher.mocked('/bring#hash').then((res) => res.text())))
+        .resolves.toBe('#new-hash');
+    });
+  });
 });

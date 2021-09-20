@@ -56,13 +56,6 @@ export default class InterceptRule {
     return this;
   }
 
-  private declare redirection?: string;
-
-  redirect(url: string): this {
-    this.redirection = url;
-    return this;
-  }
-
   private declare replier?: Reply;
 
   reply(body?: BodyInit | null, init?: ResponseInit): this;
@@ -164,7 +157,7 @@ export default class InterceptRule {
   async apply(request: Request, fetchers: Fetchers): Promise<Response> {
     this.restApplyTimes -= 1;
 
-    const { replier, delayDuration, redirection } = this;
+    const { replier, delayDuration } = this;
 
     // Throw if no replier provided.
     if (replier === undefined) {
@@ -178,12 +171,9 @@ export default class InterceptRule {
     // Apply delay.
     if (delayDuration > 0) await new Promise((r) => setTimeout(r, delayDuration));
 
-    // Apply redirection.
-    const parsedRequest = redirection ? new Request(redirection, request) : request;
-
     // Execute callback.
     const bodyInitOrResponse = typeof replier === 'function'
-      ? await replier(parsedRequest, fetchers)
+      ? await replier(request, fetchers)
       : replier;
 
     // Form the response.
@@ -196,14 +186,7 @@ export default class InterceptRule {
     if (!response.url) {
       Object.defineProperty(response, 'url', {
         // Remove hash as the standard behavior.
-        value: parsedRequest.url.split('#', 1)[0],
-      });
-    }
-
-    // Set redirected mark.
-    if (redirection && !response.redirected) {
-      Object.defineProperty(response, 'redirected', {
-        value: true,
+        value: request.url.split('#', 1)[0],
       });
     }
 
