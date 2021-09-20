@@ -10,8 +10,20 @@ import { RequestMessage, ResponseMessage } from './Message';
 export default class Worker {
   scope: ServiceWorkerGlobalScope;
 
+  private beActive = false;
+
   constructor(scope: ServiceWorkerGlobalScope) {
     this.scope = scope;
+
+    // Service worker listeners can only be added on the initial evaluation.
+    this.scope.addEventListener('fetch', (event) => {
+      if (!this.beActive) return;
+      event.respondWith(this.onFetch(event));
+    });
+    this.scope.addEventListener('message', (event) => {
+      if (!this.beActive) return;
+      this.onMessage(event);
+    });
   }
 
   onFetchResolveList: (((res: Response) => void) | null)[] = [];
@@ -19,7 +31,7 @@ export default class Worker {
   /**
    * For captured requests, message back to the client.
    */
-  onFetch = (event: FetchEvent): void => event.respondWith((async () => {
+  onFetch = async (event: FetchEvent): Promise<Response> => {
     const client = await this.scope.clients.get(event.clientId);
     if (!client) {
       throw new Error('No client matched');
@@ -31,7 +43,7 @@ export default class Worker {
     return new Promise<Response>((resolve) => {
       this.onFetchResolveList.push(resolve);
     });
-  })());
+  };
 
   onMessage = (event: ExtendableMessageEvent): void => {
     if (event.data && 'request' in event.data) {
@@ -75,27 +87,21 @@ export default class Worker {
     this.onFetchResolveList[id] = null;
   };
 
-  private addedListeners = false;
-
   isActive(): boolean {
-    return this.addedListeners;
+    return this.beActive;
   }
 
   /**
    * Stop capturing requests and receiving messages.
    */
   deactivate(): void {
-    this.scope.removeEventListener('fetch', this.onFetch);
-    this.scope.removeEventListener('message', this.onMessage);
-    this.addedListeners = false;
+    this.beActive = false;
   }
 
   /**
    * Start capturing requests and receiving messages.
    */
   activate(): void {
-    this.scope.addEventListener('fetch', this.onFetch);
-    this.scope.addEventListener('message', this.onMessage);
-    this.addedListeners = true;
+    this.beActive = true;
   }
 }
