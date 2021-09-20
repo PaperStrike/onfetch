@@ -44,8 +44,9 @@ fetcherTest.describe('mocked fetch', () => {
     fetcherTest('simple', async ({ fetcher }) => {
       fetcher.addRule('/from').reply(Response.redirect('/to'));
       fetcher.addRule('/to').reply('redirected');
-      await (expect(fetcher.mocked('/from').then((res) => res.text())))
-        .resolves.toBe('redirected');
+      const response = await fetcher.mocked('/from');
+      await (expect(response.text())).resolves.toBe('redirected');
+      expect(response.redirected).toBeTruthy();
     });
     fetcherTest('keep original hash', async ({ fetcher }) => {
       fetcher.addRule('/bring').reply(Response.redirect('/to'));
