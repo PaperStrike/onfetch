@@ -9,8 +9,16 @@ import { RequestMessage, ResponseMessage } from './Message';
 export default class Client {
   workerContainer: ServiceWorkerContainer;
 
+  announceReady = (): void => {
+    const { controller } = this.workerContainer;
+    if (controller) controller.postMessage({});
+  };
+
   constructor(workerContainer: ServiceWorkerContainer) {
     this.workerContainer = workerContainer;
+
+    this.announceReady();
+    workerContainer.addEventListener('controllerchange', this.announceReady);
   }
 
   fetchResolveList: (((res: Response) => void) | null)[] = [];

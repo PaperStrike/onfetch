@@ -12,16 +12,26 @@ export default class Worker {
 
   private beActive = false;
 
+  clientIdSet = new Set<string>();
+
   constructor(scope: ServiceWorkerGlobalScope) {
     this.scope = scope;
 
     // Service worker listeners can only be added on the initial evaluation.
     this.scope.addEventListener('fetch', (event) => {
       if (!this.beActive) return;
+
+      if (!this.clientIdSet.has(event.clientId)) return;
+
       event.respondWith(this.onFetch(event));
     });
     this.scope.addEventListener('message', (event) => {
       if (!this.beActive) return;
+
+      const { source } = event;
+      if (!(source instanceof Client)) return;
+      this.clientIdSet.add(source.id);
+
       this.onMessage(event);
     });
   }
