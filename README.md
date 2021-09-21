@@ -16,8 +16,6 @@
 
 Mock [`fetch()`][mdn-fetch-func] with native [`Request`][mdn-request-api] / [`Response`][mdn-response-api] API. Optionally, mock All with [Service Worker](#service-worker).
 
-Works with [`node-fetch`](https://github.com/node-fetch/node-fetch), [`whatwg-fetch`](https://github.com/github/fetch), [`cross-fetch`](https://github.com/lquixada/cross-fetch), whatever, and mainly, modern browsers.
-
 ---
 
 🐿️ Jump to
@@ -49,6 +47,8 @@ onfetch('/post', { method: 'POST' })
 onfetch('/down')
   .reply(null, { status: 500 });
 ```
+
+Works with [`node-fetch`](https://github.com/node-fetch/node-fetch), [`whatwg-fetch`](https://github.com/github/fetch), [`cross-fetch`](https://github.com/lquixada/cross-fetch), whatever, and mainly, modern browsers.
 
 In Node, in addition to setting up global [`fetch`][mdn-fetch-func], you also need to set up global [`Headers`][mdn-headers-api], [`Request`][mdn-request-api], and [`Response`][mdn-response-api].
 
