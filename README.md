@@ -311,7 +311,7 @@ script.src = '/script.js';
 document.head.append(script);
 ```
 
-To enable this feature, import `onfetch/sw` in you service worker.
+To enable this feature, import `onfetch/sw` in your service worker.
 
 ```js
 // In the service worker.
