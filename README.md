@@ -318,7 +318,9 @@ To enable this feature, import `onfetch/sw` in your service worker.
 import 'onfetch/sw';
 ```
 
-Optionally, store a reference of the default import value to disable it at some point. Use `onfetch.useDefault()` in client side at the same time to avoid inconsistent status.
+To switch back to the standard mode, call `onfetch.useDefault()` in the client side.
+
+To disable `onfetch/sw`, store its default import value beforehand, and call its `deactivate` method. After that, if the client `onfetch` still uses the service worker mode, it will never intercept any requests.
 
 ```js
 // In the service worker.
@@ -327,21 +329,6 @@ import onfetchWorker from 'onfetch/sw';
 self.addEventListener('message', ({ data }) => {
   // To re-activate, call `.activate()`.
   if (data?.example) onfetchWorker.deactivate();
-});
-```
-
-```js
-// In the main browsing context.
-import onfetch from 'onfetch';
-
-onfetch.useServiceWorker();
-
-window.addEventListener('some-point', () => {
-  window.navigator.serviceWorker.controller
-    .postMessage({
-      example: true,
-    });
-  onfetch.useDefault();
 });
 ```
 

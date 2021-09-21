@@ -1,7 +1,11 @@
 import { CloneableRequest, CloneableResponse } from './toCloneable';
 
 export interface Message {
-  id: number;
+  onfetch: number;
+}
+
+export interface StatusMessage extends Message {
+  status: 'on' | 'off';
 }
 
 export interface RequestMessage extends Message {

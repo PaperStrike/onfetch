@@ -1,6 +1,6 @@
 /// <reference lib="WebWorker" />
 import toCloneable from './toCloneable';
-import { RequestMessage, ResponseMessage } from './Message';
+import { StatusMessage, RequestMessage, ResponseMessage } from './Message';
 
 /**
  * A fetch forwarder
@@ -12,7 +12,7 @@ export default class Worker {
 
   private beActive = false;
 
-  clientIdSet = new Set<string>();
+  onFetchResolveMap: Map<string, (((res: Response) => void) | null)[]> = new Map();
 
   constructor(scope: ServiceWorkerGlobalScope) {
     this.scope = scope;
@@ -21,22 +21,15 @@ export default class Worker {
     this.scope.addEventListener('fetch', (event) => {
       if (!this.beActive) return;
 
-      if (!this.clientIdSet.has(event.clientId)) return;
+      if (!this.onFetchResolveMap.has(event.clientId)) return;
 
       event.respondWith(this.onFetch(event));
     });
     this.scope.addEventListener('message', (event) => {
       if (!this.beActive) return;
-
-      const { source } = event;
-      if (!(source instanceof Client)) return;
-      this.clientIdSet.add(source.id);
-
       this.onMessage(event);
     });
   }
-
-  onFetchResolveList: (((res: Response) => void) | null)[] = [];
 
   /**
    * For captured requests, message back to the client.
@@ -46,16 +39,22 @@ export default class Worker {
     if (!client) {
       throw new Error('No client matched');
     }
+    const onFetchResolveList = this.onFetchResolveMap.get(event.clientId);
+    if (!onFetchResolveList) {
+      throw new Error('Client not registered');
+    }
     client.postMessage({
       request: await toCloneable(event.request),
-      id: this.onFetchResolveList.length,
+      onfetch: onFetchResolveList.length,
     });
     return new Promise<Response>((resolve) => {
-      this.onFetchResolveList.push(resolve);
+      onFetchResolveList.push(resolve);
     });
   };
 
   onMessage = (event: ExtendableMessageEvent): void => {
+    if (!event.data || !('onfetch' in event.data)) return;
+
     if (event.data && 'request' in event.data) {
       // eslint-disable-next-line no-void
       void this.onRequestMessage(event);
@@ -63,6 +62,10 @@ export default class Worker {
     if (event.data && 'response' in event.data) {
       // eslint-disable-next-line no-void
       void this.onResponseMessage(event);
+    }
+    if (event.data && 'status' in event.data) {
+      // eslint-disable-next-line no-void
+      void this.onStatusMessage(event);
     }
   };
 
@@ -72,13 +75,13 @@ export default class Worker {
   onRequestMessage = async (
     event: Omit<ExtendableMessageEvent, 'data'> & { data: RequestMessage },
   ): Promise<void> => {
-    const { source, data: { request, id } } = event;
+    const { source, data: { request, onfetch } } = event;
     if (!source) {
       throw new Error('Request came from unknown source');
     }
     source.postMessage({
       response: await toCloneable(await this.scope.fetch(request.url, request)),
-      id,
+      onfetch,
     });
   };
 
@@ -88,13 +91,42 @@ export default class Worker {
   onResponseMessage = async (
     event: Omit<ExtendableMessageEvent, 'data'> & { data: ResponseMessage },
   ): Promise<void> => {
-    const { data: { response, id } } = event;
-    const resolve = this.onFetchResolveList[id];
+    const { source, data: { response, onfetch } } = event;
+    if (!(source instanceof Client)) {
+      throw new Error('Response came from unknown source');
+    }
+    const onFetchResolveList = this.onFetchResolveMap.get(source.id);
+    if (!onFetchResolveList) {
+      throw new Error('Response came from unregistered source');
+    }
+    const resolve = onFetchResolveList[onfetch];
     if (!resolve) {
       throw new Error('Response came for unknown request');
     }
     resolve(new Response(response.body, response));
-    this.onFetchResolveList[id] = null;
+    onFetchResolveList[onfetch] = null;
+  };
+
+  onStatusMessage = async (
+    event: Omit<ExtendableMessageEvent, 'data'> & { data: StatusMessage },
+  ): Promise<void> => {
+    const { source, data: { status } } = event;
+    if (!(source instanceof Client)) {
+      throw new Error('Status came from unknown source');
+    }
+    switch (status) {
+      case 'on': {
+        this.onFetchResolveMap.set(source.id, []);
+        break;
+      }
+      case 'off': {
+        this.onFetchResolveMap.delete(source.id);
+        break;
+      }
+      default: {
+        throw new Error('Unknown message status');
+      }
+    }
   };
 
   isActive(): boolean {

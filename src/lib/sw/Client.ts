@@ -9,19 +9,11 @@ import { RequestMessage, ResponseMessage } from './Message';
 export default class Client {
   workerContainer: ServiceWorkerContainer;
 
-  announceReady = (): void => {
-    const { controller } = this.workerContainer;
-    if (controller) controller.postMessage({});
-  };
+  fetchResolveList: (((res: Response) => void) | null)[] = [];
 
   constructor(workerContainer: ServiceWorkerContainer) {
     this.workerContainer = workerContainer;
-
-    this.announceReady();
-    workerContainer.addEventListener('controllerchange', this.announceReady);
   }
-
-  fetchResolveList: (((res: Response) => void) | null)[] = [];
 
   /**
    * For received requests, message to the service worker.
@@ -33,7 +25,7 @@ export default class Client {
     }
     controller.postMessage({
       request: await toCloneable(new Request(...args)),
-      id: this.fetchResolveList.length,
+      onfetch: this.fetchResolveList.length,
     });
     return new Promise<Response>((resolve) => {
       this.fetchResolveList.push(resolve);
@@ -57,13 +49,13 @@ export default class Client {
   onRequestMessage = async (
     event: MessageEvent<RequestMessage>,
   ): Promise<void> => {
-    const { source, data: { request, id } } = event;
+    const { source, data: { request, onfetch } } = event;
     if (!source) {
       throw new Error('Request came from unknown source');
     }
     source.postMessage({
       response: await toCloneable(await this.fetch(request.url, request)),
-      id,
+      onfetch,
     });
   };
 
@@ -73,13 +65,21 @@ export default class Client {
   onResponseMessage = async (
     event: MessageEvent<ResponseMessage>,
   ): Promise<void> => {
-    const { data: { response, id } } = event;
-    const resolve = this.fetchResolveList[id];
+    const { data: { response, onfetch } } = event;
+    const resolve = this.fetchResolveList[onfetch];
     if (!resolve) {
       throw new Error('Response came for unknown request');
     }
     resolve(new Response(response.body, response));
-    this.fetchResolveList[id] = null;
+    this.fetchResolveList[onfetch] = null;
+  };
+
+  unregisterController = (): void => {
+    this.workerContainer.controller?.postMessage({ onfetch: -1, status: 'off' });
+  };
+
+  registerController = (): void => {
+    this.workerContainer.controller?.postMessage({ onfetch: -1, status: 'on' });
   };
 
   private addedListeners = false;
@@ -92,6 +92,8 @@ export default class Client {
    * Stop receiving worker messages.
    */
   deactivate(): void {
+    this.unregisterController();
+    this.workerContainer.removeEventListener('controllerchange', this.registerController);
     this.workerContainer.removeEventListener('message', this.onMessage);
     this.addedListeners = false;
   }
@@ -100,6 +102,8 @@ export default class Client {
    * Start receiving worker messages.
    */
   activate(): void {
+    this.registerController();
+    this.workerContainer.addEventListener('controllerchange', this.registerController);
     this.workerContainer.addEventListener('message', this.onMessage);
     this.addedListeners = true;
   }

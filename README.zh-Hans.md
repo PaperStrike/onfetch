@@ -317,7 +317,9 @@ document.head.append(script);
 import 'onfetch/sw';
 ```
 
-可选地，储存一个对默认导入值的引用，以在某时刻暂停。同时在客户端调用 `onfetch.useDefault()` 可避免这之间的请求因两端状态不一被错误处理。
+要切换回普通模式，在主页面端执行 `onfetch.useDefault()`。
+
+要停用 `onfetch/sw`，需提前储存其默认导入值，然后执行其 `deactivate` 方法。这之后，如果主页面端 `onfetch` 仍使用 service worker 模式，将拦截不到任何请求。
 
 ```js
 // 在 service worker 中
@@ -326,21 +328,6 @@ import onfetchWorker from 'onfetch/sw';
 self.addEventListener('message', ({ data }) => {
   // 可以使用 `.activate()` 重新启用
   if (data?.example) onfetchWorker.deactivate();
-});
-```
-
-```js
-// 在主页面脚本中
-import onfetch from 'onfetch';
-
-onfetch.useServiceWorker();
-
-window.addEventListener('某时刻', () => {
-  window.navigator.serviceWorker.controller
-    .postMessage({
-      example: true,
-    });
-  onfetch.useDefault();
 });
 ```
 
