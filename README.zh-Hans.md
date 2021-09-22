@@ -331,6 +331,16 @@ self.addEventListener('message', ({ data }) => {
 });
 ```
 
+## 请求流程
+
+默认模式下：
+
+![onfetch 捕获测试样例的 fetch 请求，据需要发送真实请求，重定向需重定向的响应，然后返回模拟响应。](./docs/default-flow.svg)
+
+配合 [service worker](#service-worker)：
+
+![Service worker 捕获测试样例的所有请求，转发给 onfetch。onfetch 据需要发送真实请求，返回模拟响应。浏览器会自动将需重定向的响应以新请求的形式发给 service worker。](./docs/sw-flow.svg)
+
 ## 选项
 
 可通过 `onfetch.config` 配置。
@@ -396,7 +406,7 @@ onfetch.config({
 });
 ```
 
-在 [service worker 模式](#service-worker) 下，此选项默认为 `true`，因为浏览器会自己处理重定向。我们也因此可以克服一些[重定向限制](#局限)。
+在 [service worker 模式](#service-worker) 下，此选项默认为 `true`，因为浏览器会自己处理重定向（见[请求流程](#请求流程)）。我们也因此可以克服一些[重定向限制](#局限)。
 
 ## Q&A
 
