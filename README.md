@@ -332,6 +332,16 @@ self.addEventListener('message', ({ data }) => {
 });
 ```
 
+## Request Flow
+
+In default mode:
+
+![onfetch captures the tests' fetch requests, makes real requests on demand, redirects the redirect-responses, and then sends back the mocked responses.](./docs/default-flow.svg)
+
+In [service worker mode](#service-worker):
+
+![Service worker captures the client tests' all requests, and sends back to client onfetch. Client onfetch may make real request, and will send back the mocked response via service worker. Browser will auto redirect the redirect-responses by sending new requests to service worker.](./docs/sw-flow.svg)
+
 ## Options
 
 Configurable via `onfetch.config`.
@@ -397,7 +407,7 @@ onfetch.config({
 });
 ```
 
-In [service worker mode](#service-worker), this defaults to `true`, as the browser will handle the redirect on its own. So we can overcome some [redirect limitations](#limitations).
+In [service worker mode](#service-worker), this defaults to `true`, as the browser will handle the redirect on its own (see [request flow](#request-flow)). So we can overcome some [redirect limitations](#limitations).
 
 ## Q&A
 
