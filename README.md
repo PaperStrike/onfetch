@@ -7,7 +7,7 @@
 [q-a]: https://github.com/PaperStrike/onfetch/discussions/categories/q-a
 [contributing]: https://github.com/PaperStrike/onfetch/blob/main/.github/CONTRIBUTING.md
 
-[mdn-fetch-func]: https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch
+[mdn-fetch-func]: https://developer.mozilla.org/en-US/docs/Web/API/fetch
 [mdn-request-api]: https://developer.mozilla.org/en-US/docs/Web/API/Request
 [mdn-response-api]: https://developer.mozilla.org/en-US/docs/Web/API/Response
 
