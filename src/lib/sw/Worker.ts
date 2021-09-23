@@ -10,60 +10,69 @@ import { StatusMessage, RequestMessage, ResponseMessage } from './Message';
 export default class Worker {
   scope: ServiceWorkerGlobalScope;
 
-  private beActive = false;
+  portMap: Map<string, MessagePort> = new Map();
 
-  onFetchResolveMap: Map<string, (((res: Response) => void) | null)[]> = new Map();
+  resolveListMap: Map<MessagePort, (((res: Response) => void) | null)[]> = new Map();
+
+  private beActive = false;
 
   constructor(scope: ServiceWorkerGlobalScope) {
     this.scope = scope;
 
     // Service worker listeners can only be added on the initial evaluation.
-    this.scope.addEventListener('fetch', (event) => {
+    scope.addEventListener('fetch', this.onFetch);
+
+    // For clients' port registration.
+    scope.addEventListener('message', (event) => {
       if (!this.beActive) return;
 
-      if (!this.onFetchResolveMap.has(event.clientId)) return;
+      if (!event.data || !('onfetch' in event.data)) return;
 
-      event.respondWith(this.onFetch(event));
-    });
-    this.scope.addEventListener('message', (event) => {
-      if (!this.beActive) return;
-      this.onMessage(event);
+      const { source } = event;
+      if (!(source instanceof Client)) return;
+      if (this.portMap.has(source.id)) return;
+
+      const [port] = event.ports;
+      this.portMap.set(source.id, port);
+      port.onmessage = this.onMessage;
     });
   }
 
   /**
    * For captured requests, message back to the client.
    */
-  onFetch = async (event: FetchEvent): Promise<Response> => {
-    const client = await this.scope.clients.get(event.clientId);
-    if (!client) {
-      throw new Error('No client matched');
-    }
-    const onFetchResolveList = this.onFetchResolveMap.get(event.clientId);
-    if (!onFetchResolveList) {
-      throw new Error('Client not registered');
-    }
-    client.postMessage({
-      request: await toCloneable(event.request),
-      onfetch: onFetchResolveList.length,
-    });
-    return new Promise<Response>((resolve) => {
-      onFetchResolveList.push(resolve);
-    });
+  onFetch = (event: FetchEvent): void => {
+    if (!this.beActive) return;
+
+    const port = this.portMap.get(event.clientId);
+    if (!port) return;
+
+    const resolveList = this.resolveListMap.get(port);
+    if (!resolveList) return;
+
+    event.respondWith((async () => {
+      port.postMessage({
+        request: await toCloneable(event.request),
+        index: resolveList.length,
+      });
+      return new Promise<Response>((resolve) => {
+        resolveList.push(resolve);
+      });
+    })());
   };
 
-  onMessage = (event: ExtendableMessageEvent): void => {
-    if (!event.data || !('onfetch' in event.data)) return;
+  onMessage = (event: MessageEvent): void => {
+    if (!this.beActive || !event.data) return;
 
-    if (event.data && 'request' in event.data) {
+    if ('request' in event.data) {
       // eslint-disable-next-line no-void
       void this.onRequestMessage(event);
     }
-    if (event.data && 'response' in event.data) {
+    if ('response' in event.data) {
       // eslint-disable-next-line no-void
       void this.onResponseMessage(event);
     }
-    if (event.data && 'status' in event.data) {
+    if ('status' in event.data) {
       // eslint-disable-next-line no-void
       void this.onStatusMessage(event);
     }
@@ -73,15 +82,15 @@ export default class Worker {
    * For messaged requests, respond with real responses.
    */
   onRequestMessage = async (
-    event: Omit<ExtendableMessageEvent, 'data'> & { data: RequestMessage },
+    event: MessageEvent<RequestMessage>,
   ): Promise<void> => {
-    const { source, data: { request, onfetch } } = event;
-    if (!source) {
-      throw new Error('Request came from unknown source');
+    const { target, data: { request, index } } = event;
+    if (!(target instanceof MessagePort) || !this.resolveListMap.has(target)) {
+      throw new Error('Request came from unrecognized source');
     }
-    source.postMessage({
+    target.postMessage({
       response: await toCloneable(await this.scope.fetch(request.url, request)),
-      onfetch,
+      index,
     });
   };
 
@@ -89,38 +98,38 @@ export default class Worker {
    * For messaged responses, treat as a previous captured request's response.
    */
   onResponseMessage = async (
-    event: Omit<ExtendableMessageEvent, 'data'> & { data: ResponseMessage },
+    event: MessageEvent<ResponseMessage>,
   ): Promise<void> => {
-    const { source, data: { response, onfetch } } = event;
-    if (!(source instanceof Client)) {
-      throw new Error('Response came from unknown source');
+    const { target, data: { response, index } } = event;
+    if (!(target instanceof MessagePort)) {
+      throw new Error('Request came from unknown source');
     }
-    const onFetchResolveList = this.onFetchResolveMap.get(source.id);
-    if (!onFetchResolveList) {
+    const resolveList = this.resolveListMap.get(target);
+    if (!resolveList) {
       throw new Error('Response came from unregistered source');
     }
-    const resolve = onFetchResolveList[onfetch];
+    const resolve = resolveList[index];
     if (!resolve) {
       throw new Error('Response came for unknown request');
     }
     resolve(new Response(response.body, response));
-    onFetchResolveList[onfetch] = null;
+    resolveList[index] = null;
   };
 
   onStatusMessage = async (
-    event: Omit<ExtendableMessageEvent, 'data'> & { data: StatusMessage },
+    event: MessageEvent<StatusMessage>,
   ): Promise<void> => {
-    const { source, data: { status } } = event;
-    if (!(source instanceof Client)) {
-      throw new Error('Status came from unknown source');
+    const { target, data: { status } } = event;
+    if (!(target instanceof MessagePort)) {
+      throw new Error('Request came from unknown source');
     }
     switch (status) {
       case 'on': {
-        this.onFetchResolveMap.set(source.id, []);
+        this.resolveListMap.set(target, []);
         break;
       }
       case 'off': {
-        this.onFetchResolveMap.delete(source.id);
+        this.resolveListMap.delete(target);
         break;
       }
       default: {

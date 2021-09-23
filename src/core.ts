@@ -1,6 +1,6 @@
 import Fetcher, { Context, Options } from './Fetcher';
 import InterceptRule, { passThrough } from './InterceptRule';
-import Client from './lib/sw/Client';
+import Channel from './lib/sw/Channel';
 import Worker from './lib/sw/Worker';
 
 export {
@@ -9,7 +9,7 @@ export {
   Options,
   InterceptRule,
   passThrough,
-  Client,
+  Channel,
   Worker,
 };
 

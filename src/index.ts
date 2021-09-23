@@ -1,9 +1,11 @@
-import mockFetchOn, { Client, Onfetch } from './core';
+import mockFetchOn, { Channel, Onfetch } from './core';
 
 export * from './core';
 export { mockFetchOn };
 
-let client: Client;
+const channel = typeof window !== 'undefined' && window?.navigator?.serviceWorker
+  ? new Channel(window.navigator.serviceWorker)
+  : null;
 
 const onfetch: Onfetch & {
   useServiceWorker(): void;
@@ -12,15 +14,17 @@ const onfetch: Onfetch & {
   mockFetchOn(globalThis),
   {
     useServiceWorker() {
-      if (!client) client = new Client(window.navigator.serviceWorker);
-      client.activate();
-      onfetch.adopt(client);
+      if (!channel) {
+        throw new Error('Environment not compatible with service worker mode');
+      }
+      channel.activate();
+      onfetch.adopt(channel);
       onfetch.config({
         bypassRedirect: true,
       });
     },
     useDefault() {
-      if (client) client.deactivate();
+      if (channel) channel.deactivate();
       onfetch.adopt(globalThis);
       onfetch.config({
         bypassRedirect: false,
