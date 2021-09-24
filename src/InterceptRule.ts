@@ -137,8 +137,8 @@ export default class InterceptRule {
       return false;
     }
 
-    // Check init other than `body` and `window`.
-    // Specify keys, as destructuring and Object.keys won't include inherited properties.
+    // Check init other than `headers`, `body` and `window`.
+    // Specify keys, as destructuring and Object.keys won't include inherited props.
     return ([
       'cache',
       'credentials',
