@@ -1,4 +1,3 @@
-/// <reference lib="WebWorker" />
 import toCloneable from './toCloneable';
 import { StatusMessage, RequestMessage, ResponseMessage } from './Message';
 

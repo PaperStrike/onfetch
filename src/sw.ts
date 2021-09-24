@@ -1,4 +1,3 @@
-/// <reference lib="WebWorker" />
 import { Worker } from './core';
 
 declare const globalThis: ServiceWorkerGlobalScope;
