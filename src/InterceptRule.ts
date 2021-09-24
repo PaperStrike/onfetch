@@ -1,7 +1,3 @@
-type Entries<T> = NonNullable<{
-  [K in keyof T]: [K, T[K]];
-}[keyof T]>[];
-
 type Fetchers = {
   original: typeof fetch;
   mocked: typeof fetch;
