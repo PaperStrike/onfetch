@@ -136,22 +136,27 @@ export default class InterceptRule {
 
     // Test required init.
 
-    // Separate out body, headers and window.
-    const {
-      body,
-      headers,
-      window,
-      ...rest
-    } = requiredInit as Omit<RequestInit, 'window'> & { window?: null };
-
     // Check required headers.
     if (this.headersArr.some(([key, value]) => request.headers.get(key) !== value)) {
       return false;
     }
 
-    // Check the rest init.
-    return (Object.entries(rest) as Entries<typeof rest>)
-      .every(([key, value]) => request[key] === value);
+    // Check init other than `body` and `window`.
+    // Specify keys, as destructuring and Object.keys won't include inherited properties.
+    return ([
+      'cache',
+      'credentials',
+      'integrity',
+      'keepalive',
+      'method',
+      'mode',
+      'redirect',
+      'referrer',
+      'referrerPolicy',
+      'signal',
+    ] as const).every((key) => (
+      !(key in requiredInit) || request[key] === requiredInit[key]
+    ));
   }
 
   async apply(request: Request, fetchers: Fetchers): Promise<Response> {
