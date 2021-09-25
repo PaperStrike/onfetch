@@ -1,5 +1,10 @@
 import toCloneable from './toCloneable';
-import { StatusMessage, RequestMessage, ResponseMessage } from './Message';
+import {
+  FulfillList,
+  StatusMessage,
+  RequestMessage,
+  ResponseMessage,
+} from './Message';
 
 /**
  * A fetch forwarder
@@ -11,7 +16,7 @@ export default class Worker {
 
   portMap: Map<string, MessagePort> = new Map();
 
-  resolveListMap: Map<MessagePort, (((res: Response) => void) | null)[]> = new Map();
+  fulfillListMap: Map<MessagePort, FulfillList> = new Map();
 
   private beActive = false;
 
@@ -46,16 +51,16 @@ export default class Worker {
     const port = this.portMap.get(event.clientId);
     if (!port) return;
 
-    const resolveList = this.resolveListMap.get(port);
-    if (!resolveList) return;
+    const fulfillList = this.fulfillListMap.get(port);
+    if (!fulfillList) return;
 
     event.respondWith((async () => {
       port.postMessage({
         request: await toCloneable(event.request),
-        index: resolveList.length,
+        index: fulfillList.length,
       });
-      return new Promise<Response>((resolve) => {
-        resolveList.push(resolve);
+      return new Promise<Response>((resolve, reject) => {
+        fulfillList.push([resolve, reject]);
       });
     })());
   };
@@ -84,11 +89,14 @@ export default class Worker {
     event: MessageEvent<RequestMessage>,
   ): Promise<void> => {
     const { target, data: { request, index } } = event;
-    if (!(target instanceof MessagePort) || !this.resolveListMap.has(target)) {
+    if (!(target instanceof MessagePort) || !this.fulfillListMap.has(target)) {
       throw new Error('Request came from unrecognized source');
     }
+    const responseOrError = await this.scope.fetch(request.url, request).catch((err: Error) => err);
     target.postMessage({
-      response: await toCloneable(await this.scope.fetch(request.url, request)),
+      response: responseOrError instanceof Error
+        ? responseOrError
+        : await toCloneable(responseOrError),
       index,
     });
   };
@@ -103,16 +111,20 @@ export default class Worker {
     if (!(target instanceof MessagePort)) {
       throw new Error('Request came from unknown source');
     }
-    const resolveList = this.resolveListMap.get(target);
-    if (!resolveList) {
+    const fulfillList = this.fulfillListMap.get(target);
+    if (!fulfillList) {
       throw new Error('Response came from unregistered source');
     }
-    const resolve = resolveList[index];
-    if (!resolve) {
+    const fulfill = fulfillList[index];
+    if (!fulfill) {
       throw new Error('Response came for unknown request');
     }
-    resolve(new Response(response.body, response));
-    resolveList[index] = null;
+    if (response instanceof Error) {
+      fulfill[1](response);
+    } else {
+      fulfill[0](new Response(response.body, response));
+    }
+    fulfillList[index] = null;
   };
 
   onStatusMessage = async (
@@ -124,11 +136,11 @@ export default class Worker {
     }
     switch (status) {
       case 'on': {
-        this.resolveListMap.set(target, []);
+        this.fulfillListMap.set(target, []);
         break;
       }
       case 'off': {
-        this.resolveListMap.delete(target);
+        this.fulfillListMap.delete(target);
         break;
       }
       default: {

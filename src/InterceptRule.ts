@@ -174,7 +174,12 @@ export default class InterceptRule {
 
     // Execute callback.
     const bodyInitOrResponse = typeof replier === 'function'
-      ? await replier(request, fetchers)
+      // Ensure thrown error to be Error.
+      ? await Promise.resolve(replier(request, fetchers))
+        .catch((err) => {
+          if (err instanceof Error) throw err;
+          throw new Error(`The reply callback threw an error: ${String(err)}`);
+        })
       : replier;
 
     // Form the response.
