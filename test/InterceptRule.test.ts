@@ -105,7 +105,7 @@ test.describe('reply', () => {
   type ReplyFixture = {
     replyAs: (
       ...replyArgs: Parameters<InterceptRule['reply']>
-    ) => () => Promise<Response>;
+    ) => Promise<Response>;
   };
   const replyTest = test.extend<ReplyFixture>({
     replyAs: (_, use) => (
@@ -115,12 +115,10 @@ test.describe('reply', () => {
         };
         const rule = new InterceptRule('');
         rule.reply(...replyArgs);
-        return () => (
-          rule.apply(new Request(''), {
-            original: fetcher,
-            mocked: fetcher,
-          })
-        );
+        return rule.apply(new Request(''), {
+          original: fetcher,
+          mocked: fetcher,
+        });
       })
     ),
   });
