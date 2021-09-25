@@ -100,3 +100,34 @@ test.describe('matching', () => {
     });
   });
 });
+
+test.describe('reply', () => {
+  type ReplyFixture = {
+    replyAs: (
+      ...replyArgs: Parameters<InterceptRule['reply']>
+    ) => () => Promise<Response>;
+  };
+  const replyTest = test.extend<ReplyFixture>({
+    replyAs: (_, use) => (
+      use((...replyArgs) => {
+        const fetcher = () => {
+          throw new Error('Fetchers shouldn\'t be used in test cases');
+        };
+        const rule = new InterceptRule('');
+        rule.reply(...replyArgs);
+        return () => (
+          rule.apply(new Request(''), {
+            original: fetcher,
+            mocked: fetcher,
+          })
+        );
+      })
+    ),
+  });
+
+  replyTest('all error in callback to be Error', async ({ replyAs }) => {
+    // eslint-disable-next-line prefer-promise-reject-errors
+    const replyPromise = replyAs(() => Promise.reject('non-Error'));
+    await expect(replyPromise).rejects.toBeInstanceOf(Error);
+  });
+});

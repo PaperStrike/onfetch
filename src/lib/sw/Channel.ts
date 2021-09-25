@@ -1,5 +1,5 @@
 import toCloneable from './toCloneable';
-import { RequestMessage, ResponseMessage } from './Message';
+import { FulfillList, RequestMessage, ResponseMessage } from './Message';
 
 /**
  * A fetch receiver
@@ -9,7 +9,7 @@ import { RequestMessage, ResponseMessage } from './Message';
 export default class Channel {
   port?: MessagePort;
 
-  resolveList?: (((res: Response) => void) | null)[];
+  fulfillList?: FulfillList;
 
   private beActive = false;
 
@@ -28,7 +28,7 @@ export default class Channel {
     port1.onmessage = this.onMessage;
 
     this.port = port1;
-    this.resolveList = [];
+    this.fulfillList = [];
     controller.postMessage({ onfetch: true }, [port2]);
 
     if (this.beActive) port1.postMessage({ status: 'on' });
@@ -38,16 +38,16 @@ export default class Channel {
    * For received requests, message to the service worker.
    */
   fetch = async (...args: Parameters<typeof fetch>): Promise<Response> => {
-    const { port, resolveList } = this;
-    if (!port || !resolveList) {
+    const { port, fulfillList } = this;
+    if (!port || !fulfillList) {
       throw new Error('Service worker not ready yet');
     }
     port.postMessage({
       request: await toCloneable(new Request(...args)),
-      index: resolveList.length,
+      index: fulfillList.length,
     });
-    return new Promise<Response>((resolve) => {
-      resolveList.push(resolve);
+    return new Promise<Response>((resolve, reject) => {
+      fulfillList.push([resolve, reject]);
     });
   };
 
@@ -75,8 +75,11 @@ export default class Channel {
     if (!port) {
       throw new Error('Service worker not ready yet');
     }
+    const responseOrError = await this.fetch(request.url, request).catch((err: Error) => err);
     port.postMessage({
-      response: await toCloneable(await this.fetch(request.url, request)),
+      response: responseOrError instanceof Error
+        ? responseOrError
+        : await toCloneable(responseOrError),
       index,
     });
   };
@@ -88,16 +91,20 @@ export default class Channel {
     event: MessageEvent<ResponseMessage>,
   ): Promise<void> => {
     const { data: { response, index } } = event;
-    const { resolveList } = this;
-    if (!resolveList) {
+    const { fulfillList } = this;
+    if (!fulfillList) {
       throw new Error('Service worker not ready yet');
     }
-    const resolve = resolveList[index];
-    if (!resolve) {
+    const fulfill = fulfillList[index];
+    if (!fulfill) {
       throw new Error('Response came for unknown request');
     }
-    resolve(new Response(response.body, response));
-    resolveList[index] = null;
+    if (response instanceof Error) {
+      fulfill[1](response);
+    } else {
+      fulfill[0](new Response(response.body, response));
+    }
+    fulfillList[index] = null;
   };
 
   isActive(): boolean {
