@@ -55,7 +55,7 @@ export default class InterceptRule {
   private declare replier?: Reply;
 
   reply(body?: BodyInit | null, init?: ResponseInit): this;
-  reply(body?: Promise<BodyInit | null>): this;
+  reply(body: Promise<BodyInit | null>): this;
   reply(response: Response | Promise<Response>): this;
   reply(callback: ReplyCallback): this;
   reply(replier?: Reply, init?: ResponseInit): this {
