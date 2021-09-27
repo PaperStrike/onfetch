@@ -3,10 +3,10 @@ type Fetchers = {
   mocked: typeof fetch;
 };
 
-type ReplyValue = BodyInit | null | Response;
-type ReplyCallback =
+export type ReplyValue = BodyInit | null | Response;
+export type ReplyCallback =
   (request: Request, fetchers: Fetchers) => ReplyValue | Promise<ReplyValue>;
-type Reply = ReplyValue | Promise<ReplyValue> | ReplyCallback;
+export type Reply = ReplyValue | Promise<ReplyValue> | ReplyCallback;
 
 /**
  * Split the query string and hash
