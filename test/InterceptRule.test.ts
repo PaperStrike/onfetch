@@ -1,5 +1,5 @@
 import { test, expect } from '.';
-import InterceptRule from '../src/InterceptRule';
+import InterceptRule, { Reply } from '../src/InterceptRule';
 
 test.describe('matching', () => {
   type MatchingFixture = {
@@ -103,9 +103,7 @@ test.describe('matching', () => {
 
 test.describe('reply', () => {
   type ReplyFixture = {
-    replyAs: (
-      ...replyArgs: Parameters<InterceptRule['reply']>
-    ) => Promise<Response>;
+    replyAs: (replier?: Reply, init?: ResponseInit) => Promise<Response>;
   };
   const replyTest = test.extend<ReplyFixture>({
     replyAs: (_, use) => (
@@ -114,7 +112,7 @@ test.describe('reply', () => {
           throw new Error('Fetchers shouldn\'t be used in test cases');
         };
         const rule = new InterceptRule('');
-        rule.reply(...replyArgs);
+        rule.reply(...replyArgs as Parameters<InterceptRule['reply']>);
         return rule.apply(new Request(''), {
           original: fetcher,
           mocked: fetcher,
@@ -127,5 +125,19 @@ test.describe('reply', () => {
     // eslint-disable-next-line prefer-promise-reject-errors
     const replyPromise = replyAs(() => Promise.reject('non-Error'));
     await expect(replyPromise).rejects.toBeInstanceOf(Error);
+  });
+
+  replyTest('promises', async ({ replyAs }) => {
+    const response = await replyAs(Promise.resolve(new Response('response')));
+    await expect(response.text()).resolves.toBe('response');
+
+    const stringRes = await replyAs(Promise.resolve('string'));
+    await expect(stringRes.text()).resolves.toBe('string');
+
+    const nullRes = await replyAs(Promise.resolve(null));
+    await expect(nullRes.text()).resolves.toBe('');
+
+    const arrayBufferRes = await replyAs(new Response('array buffer').arrayBuffer());
+    await expect(arrayBufferRes.text()).resolves.toBe('array buffer');
   });
 });

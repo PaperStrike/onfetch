@@ -3,10 +3,10 @@ type Fetchers = {
   mocked: typeof fetch;
 };
 
-type ReplyValue = BodyInit | null | Response;
-type ReplyCallback =
+export type ReplyValue = BodyInit | null | Response;
+export type ReplyCallback =
   (request: Request, fetchers: Fetchers) => ReplyValue | Promise<ReplyValue>;
-type Reply = ReplyValue | ReplyCallback;
+export type Reply = ReplyValue | Promise<ReplyValue> | ReplyCallback;
 
 /**
  * Split the query string and hash
@@ -55,7 +55,8 @@ export default class InterceptRule {
   private declare replier?: Reply;
 
   reply(body?: BodyInit | null, init?: ResponseInit): this;
-  reply(response: Response): this;
+  reply(body: Promise<BodyInit | null>): this;
+  reply(response: Response | Promise<Response>): this;
   reply(callback: ReplyCallback): this;
   reply(replier?: Reply, init?: ResponseInit): this {
     if (replier === undefined || init) {
@@ -180,7 +181,7 @@ export default class InterceptRule {
           if (err instanceof Error) throw err;
           throw new Error(`The reply callback threw an error: ${String(err)}`);
         })
-      : replier;
+      : await replier;
 
     // Form the response.
     const response = bodyInitOrResponse instanceof Response
