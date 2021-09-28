@@ -321,7 +321,7 @@ onfetch.cleanAll();
 
 要（重新）启用 `onfetch` 拦截 HTTP 请求，可使用 `activate()`.
 
-在你第一次引入 `onfetch` 时，`onfetch` 会自动启用。
+在你第一次引入时 `onfetch` 会自动启用自己。
 
 ```js
 onfetch.deactivate();
