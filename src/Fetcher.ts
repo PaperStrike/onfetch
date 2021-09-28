@@ -113,6 +113,17 @@ export default class Fetcher {
     if (wasActive) this.activate();
   };
 
+  readonly remove = (rule: InterceptRule): boolean => {
+    const ruleIndex = this.rules.indexOf(rule);
+    if (ruleIndex === -1) return false;
+    this.rules.splice(ruleIndex, 1);
+    return true;
+  };
+
+  readonly cleanAll = (): void => {
+    this.rules.length = 0;
+  };
+
   readonly addRule = (input: RequestInfo | RegExp, init: RequestInit = {}): InterceptRule => {
     const rule = new InterceptRule(input, init);
     this.rules.push(rule);

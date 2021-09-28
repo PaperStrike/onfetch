@@ -25,6 +25,7 @@
 [延时](#延时)，
 [重定向](#重定向)，
 [次数](#次数)，
+[恢复](#恢复)，
 [Service Worker](#service-worker)，
 [选项](#选项)，
 [Q&A][q-a]，
@@ -287,6 +288,48 @@ fetch('/foo'); // 回落到默认规则 `defaultRule`
 ### `persist()`
 
 `rule.times(Infinity)`。
+
+## 重置
+
+### 恢复
+
+`deactivate` 函数用于停用 `onfetch`，停止拦截 HTTP 请求。 注意，该方法不会清除任何请求响应规则。
+
+```js
+onfetch.deactivate();
+```
+
+### 清除单一规则
+
+```js
+const first = onfetch('/same').reply('first');
+onfetch('/same').reply('second');
+
+onfetch.remove(first);
+
+// 输出 'second'
+fetch('/foo').then((res) => res.text()).then(console.log);
+```
+
+### 清除所有请求响应规则
+
+```js
+onfetch.cleanAll();
+```
+
+### 启用
+
+要（重新）启用 `onfetch` 拦截 HTTP 请求，可使用 `activate()`.
+
+在你第一次引入时 `onfetch` 会自动启用自己。
+
+```js
+onfetch.deactivate();
+
+// 某些代码后
+
+onfetch.activate();
+```
 
 ## Service Worker
 [mdn-service-worker-api]: https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API
