@@ -21,8 +21,8 @@ export type Onfetch = OnfetchCall & {
   readonly cleanAll: () => void;
   readonly hasActive: () => boolean;
   readonly isActive: () => boolean;
-  readonly deactivate: () => void;
   readonly activate: () => void;
+  readonly restore: () => void;
   readonly config: (config: Partial<Options>) => void;
 };
 
@@ -34,8 +34,8 @@ const mockFetchOn = (context: Context): Onfetch => {
     cleanAll,
     hasActive,
     isActive,
-    deactivate,
     activate,
+    restore,
     config,
   } = new Fetcher(context);
   return Object.assign(addRule, {
@@ -44,8 +44,8 @@ const mockFetchOn = (context: Context): Onfetch => {
     cleanAll,
     hasActive,
     isActive,
-    deactivate,
     activate,
+    restore,
     config,
   });
 };

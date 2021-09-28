@@ -112,18 +112,18 @@ export default class Channel {
   }
 
   /**
-   * Stop receiving worker messages.
-   */
-  deactivate(): void {
-    this.beActive = false;
-    this.port?.postMessage({ status: 'off' });
-  }
-
-  /**
    * Start receiving worker messages.
    */
   activate(): void {
     this.beActive = true;
     this.port?.postMessage({ status: 'on' });
+  }
+
+  /**
+   * Stop receiving worker messages.
+   */
+  restore(): void {
+    this.beActive = false;
+    this.port?.postMessage({ status: 'off' });
   }
 }
