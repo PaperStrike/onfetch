@@ -23,6 +23,7 @@ Mock [`fetch()`][mdn-fetch-func] with native [`Request`][mdn-request-api] / [`Re
 [Delay](#delay),
 [Redirect](#redirect),
 [Times](#times),
+[Restore](#restore),
 [Service Worker](#service-worker),
 [Options](#options),
 [Q&A][q-a],
@@ -288,6 +289,48 @@ Sugar for `rule.times(3)`.
 ### `persist()`
 
 For `rule.times(Infinity)`.
+
+## Restoration
+
+### Restore
+
+`deactivate` deactivates `onfetch` to stop intercepting HTTP calls. Note that it does not clear any intercept rules.
+
+```js
+onfetch.deactivate();
+```
+
+### Remove a single rule
+
+```js
+const first = onfetch('/same').reply('first');
+onfetch('/same').reply('second');
+
+onfetch.remove(first);
+
+// Logs 'second'
+fetch('/foo').then((res) => res.text()).then(console.log);
+```
+
+### Remove all intercept rules
+
+```js
+onfetch.cleanAll();
+```
+
+### Activate
+
+To (re-)activate `onfetch` to start intercepting HTTP calls, you can use `activate()`.
+
+`onfetch` activates itself when you first import it.
+
+```js
+onfetch.deactivate();
+
+// After some code.
+
+onfetch.activate();
+```
 
 ## Service Worker
 [mdn-service-worker-api]: https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API
