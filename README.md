@@ -389,7 +389,7 @@ In [service worker mode](#service-worker):
 
 Configurable via `onfetch.config`.
 
-### Default rule
+### Default Rule
 
 The rule used when all `onfetch` rules failed to match a request. You can form a rule by constructing a `InterceptRule` object, which accepts the same params as `onfetch`.
 
