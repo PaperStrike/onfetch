@@ -17,6 +17,7 @@ export type OnfetchCall = ((input: RequestInfo | RegExp, init?: RequestInit) => 
 
 export type Onfetch = OnfetchCall & {
   readonly adopt: (context: Context) => void;
+  readonly remove: (rule: InterceptRule) => boolean;
   readonly cleanAll: () => void;
   readonly hasActive: () => boolean;
   readonly isActive: () => boolean;
@@ -29,6 +30,7 @@ const mockFetchOn = (context: Context): Onfetch => {
   const {
     addRule,
     adopt,
+    remove,
     cleanAll,
     hasActive,
     isActive,
@@ -38,6 +40,7 @@ const mockFetchOn = (context: Context): Onfetch => {
   } = new Fetcher(context);
   return Object.assign(addRule, {
     adopt,
+    remove,
     cleanAll,
     hasActive,
     isActive,
