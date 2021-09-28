@@ -113,6 +113,10 @@ export default class Fetcher {
     if (wasActive) this.activate();
   };
 
+  readonly cleanAll = (): void => {
+    this.rules.length = 0;
+  };
+
   readonly addRule = (input: RequestInfo | RegExp, init: RequestInit = {}): InterceptRule => {
     const rule = new InterceptRule(input, init);
     this.rules.push(rule);
