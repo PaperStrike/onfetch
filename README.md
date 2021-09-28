@@ -294,10 +294,10 @@ For `rule.times(Infinity)`.
 
 ### Restore
 
-`deactivate` deactivates `onfetch` to stop intercepting HTTP calls. Note that it does not clear any intercept rules.
+`restore` deactivates `onfetch` to stop intercepting HTTP calls. Note that it does not clear any intercept rules.
 
 ```js
-onfetch.deactivate();
+onfetch.restore();
 ```
 
 ### Remove a single rule
@@ -325,7 +325,7 @@ To (re-)activate `onfetch` to start intercepting HTTP calls, you can use `activa
 `onfetch` activates itself when you first import it.
 
 ```js
-onfetch.deactivate();
+onfetch.restore();
 
 // After some code.
 
@@ -363,7 +363,7 @@ import 'onfetch/sw';
 
 To switch back to the standard mode, call `onfetch.useDefault()` in the client side.
 
-To disable `onfetch/sw`, store its default import value beforehand, and call its `deactivate` method. After that, if the client `onfetch` still uses the service worker mode, it will never intercept any requests.
+To disable `onfetch/sw`, store its default import value beforehand, and call its `restore` method. After that, if the client `onfetch` still uses the service worker mode, it will never intercept any requests.
 
 ```js
 // In the service worker.
@@ -371,7 +371,7 @@ import onfetchWorker from 'onfetch/sw';
 
 self.addEventListener('message', ({ data }) => {
   // To re-activate, call `.activate()`.
-  if (data?.example) onfetchWorker.deactivate();
+  if (data?.example) onfetchWorker.restore();
 });
 ```
 

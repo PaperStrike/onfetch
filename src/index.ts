@@ -24,7 +24,7 @@ const onfetch: Onfetch & {
       });
     },
     useDefault() {
-      if (channel) channel.deactivate();
+      if (channel) channel.restore();
       onfetch.adopt(globalThis);
       onfetch.config({
         bypassRedirect: false,

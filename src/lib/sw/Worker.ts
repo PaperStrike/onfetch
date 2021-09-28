@@ -154,16 +154,16 @@ export default class Worker {
   }
 
   /**
-   * Stop capturing requests and receiving messages.
-   */
-  deactivate(): void {
-    this.beActive = false;
-  }
-
-  /**
    * Start capturing requests and receiving messages.
    */
   activate(): void {
     this.beActive = true;
+  }
+
+  /**
+   * Stop capturing requests and receiving messages.
+   */
+  restore(): void {
+    this.beActive = false;
   }
 }

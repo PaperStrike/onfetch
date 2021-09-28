@@ -293,10 +293,10 @@ fetch('/foo'); // 回落到默认规则 `defaultRule`
 
 ### 恢复
 
-`deactivate` 函数用于停用 `onfetch`，停止拦截 HTTP 请求。 注意，该方法不会清除任何请求响应规则。
+`restore` 函数用于停用 `onfetch`，停止拦截 HTTP 请求。 注意，该方法不会清除任何请求响应规则。
 
 ```js
-onfetch.deactivate();
+onfetch.restore();
 ```
 
 ### 清除单一规则
@@ -324,7 +324,7 @@ onfetch.cleanAll();
 在你第一次引入时 `onfetch` 会自动启用自己。
 
 ```js
-onfetch.deactivate();
+onfetch.restore();
 
 // 某些代码后
 
@@ -362,7 +362,7 @@ import 'onfetch/sw';
 
 要切换回普通模式，在主页面端执行 `onfetch.useDefault()`。
 
-要停用 `onfetch/sw`，需提前储存其默认导入值，然后执行其 `deactivate` 方法。这之后，如果主页面端 `onfetch` 仍使用 service worker 模式，将拦截不到任何请求。
+要停用 `onfetch/sw`，需提前储存其默认导入值，然后执行其 `restore` 方法。这之后，如果主页面端 `onfetch` 仍使用 service worker 模式，将拦截不到任何请求。
 
 ```js
 // 在 service worker 中
@@ -370,7 +370,7 @@ import onfetchWorker from 'onfetch/sw';
 
 self.addEventListener('message', ({ data }) => {
   // 可以使用 `.activate()` 重新启用
-  if (data?.example) onfetchWorker.deactivate();
+  if (data?.example) onfetchWorker.restore();
 });
 ```
 

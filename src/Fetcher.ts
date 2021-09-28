@@ -107,7 +107,7 @@ export default class Fetcher {
   readonly adopt = (context: Context): void => {
     if (this.context === context) return;
     const wasActive = this.isActive();
-    this.deactivate();
+    this.restore();
     this.context = context;
     this.original = context.fetch;
     if (wasActive) this.activate();
@@ -134,12 +134,12 @@ export default class Fetcher {
 
   readonly isActive = (): boolean => this.context.fetch === this.mocked;
 
-  readonly deactivate = (): void => {
-    this.context.fetch = this.original;
-  };
-
   readonly activate = (): void => {
     this.context.fetch = this.mocked;
+  };
+
+  readonly restore = (): void => {
+    this.context.fetch = this.original;
   };
 
   readonly config = (config: Partial<Options>): void => {
