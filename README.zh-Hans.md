@@ -214,7 +214,7 @@ onfetch('').delay(200).delay(300).delay(-100).reply('');
 
 ```js
 // 重定向到 '/bar'
-onfetch('/foo').reply(Response.redirect('bar'));
+onfetch('/foo').reply(Response.redirect('/bar'));
 
 // `/bar` 回应 `redirected`
 onfetch('/bar').reply('redirected');
@@ -242,17 +242,20 @@ onfetch('/foo').times(5).reply('bar');
 默认情况下，一条 `onfetch` 规则只会应用**一次**。次数用完后，该规则不再参与请求匹配。
 
 ```js
-onfetch('/foo').reply('/alpha');
-onfetch('/foo').reply('/beta');
+onfetch('/foo').reply('alpha');
+onfetch('/foo').reply('beta');
 
-fetch('/foo').then(console.log); // 输出 alpha
-fetch('/foo').then(console.log); // 输出 beta
+// 输出 alpha
+fetch('/foo').then((res) => res.text()).then(console.log);
+
+// 输出 beta
+fetch('/foo').then((res) => res.text()).then(console.log);
 ```
 
 你可以存储对某一 `onfetch` 规则的引用，然后在任意时刻重新指定其应用次数。
 
 ```js
-const onFoo = onfetch('/foo').reply('/bar');
+const onFoo = onfetch('/foo').reply('bar');
 
 fetch('/foo'); // 匹配
 
@@ -267,7 +270,7 @@ fetch('/foo'); // 匹配
 `times(n)` 不会累加，只会重写。
 
 ```js
-const onFoo = onfetch('/foo').twice().once().reply('/bar');
+const onFoo = onfetch('/foo').twice().once().reply('bar');
 
 fetch('/foo'); // 匹配
 fetch('/foo'); // 回落到默认规则 `defaultRule`

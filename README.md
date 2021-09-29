@@ -215,7 +215,7 @@ Use a [`Response`][mdn-response-api] object that has [a redirect status][redirec
 
 ```js
 // Redirect to '/bar'.
-onfetch('/foo').reply(Response.redirect('bar'));
+onfetch('/foo').reply(Response.redirect('/bar'));
 
 // `/bar` respond with `redirected`.
 onfetch('/bar').reply('redirected');
@@ -243,17 +243,20 @@ You may have multiple rules matching a request at the same time, but only the fi
 By default, an `onfetch` rule only applies _once_. When the times ran out, it bypasses the match.
 
 ```js
-onfetch('/foo').reply('/alpha');
-onfetch('/foo').reply('/beta');
+onfetch('/foo').reply('alpha');
+onfetch('/foo').reply('beta');
 
-fetch('/foo').then(console.log); // logs alpha
-fetch('/foo').then(console.log); // logs beta
+// Logs 'alpha'
+fetch('/foo').then((res) => res.text()).then(console.log);
+
+// Logs 'beta'
+fetch('/foo').then((res) => res.text()).then(console.log);
 ```
 
 You can specify the times at any time as long as you store the reference of the `onfetch` rule somewhere.
 
 ```js
-const onFoo = onfetch('/foo').reply('/bar');
+const onFoo = onfetch('/foo').reply('bar');
 
 fetch('/foo'); // match
 
@@ -268,7 +271,7 @@ Note that when all the `onfetch` rules do not match a request, that request goes
 The `times(n)` doesn't accumulate. It overrides.
 
 ```js
-const onFoo = onfetch('/foo').twice().once().reply('/bar');
+const onFoo = onfetch('/foo').twice().once().reply('bar');
 
 fetch('/foo'); // match
 fetch('/foo'); // fallback to `defaultRule`
