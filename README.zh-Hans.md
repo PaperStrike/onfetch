@@ -146,6 +146,18 @@ onfetch(/\.foo$/).reply('bar');
 onfetch(/^[^?#]*\.foo([?#]|$)/).reply('bar');
 ```
 
+#### URLPattern
+[mdn-url-pattern-api]: https://developer.mozilla.org/en-US/docs/Web/API/URLPattern
+
+你也可以使用全新的 [`URLPattern`][mdn-url-pattern-api] 对象作为第一个参数。
+
+```js
+const pattern = new URLPattern('http{s}?://*.example.com/books/:id');
+onfetch(pattern);
+```
+
+实际上，第一个参数只要求给定的对象具有这样一个 `test` 方法，接收 URL 字符串返回匹配结果布尔值。
+
 #### Request
 
 你也可以在第一个参数中给定一个 [`Request`][mdn-request-api] 对象。匹配规则类似于 [`RequestInit` 匹配](#requestinit)。

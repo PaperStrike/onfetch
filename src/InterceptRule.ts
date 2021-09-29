@@ -28,7 +28,7 @@ const splitSearchAndHash = (url: string): [string, string | undefined, string | 
 export const passThrough: ReplyCallback = (request, { original }) => original(request);
 
 export default class InterceptRule {
-  input: RequestInfo | RegExp;
+  input: RequestInfo | { test(str: string): boolean };
 
   init: RequestInit;
 
@@ -109,8 +109,8 @@ export default class InterceptRule {
     if (this.input instanceof Request) {
       // For Request, check in later init.
       requiredInit = new Request(this.input, this.init);
-    } else if (this.input instanceof RegExp) {
-      // For regex, test against request URL.
+    } else if (typeof this.input === 'object') {
+      // For object like RegExp and URLPattern, test against request URL.
       if (!this.input.test(request.url)) return false;
     } else {
       // For string, separate out search and hash.

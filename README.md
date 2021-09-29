@@ -147,6 +147,18 @@ Put it in consideration that [`RegExp`][mdn-regexp-api] here test against the _e
 onfetch(/^[^?#]*\.foo([?#]|$)/).reply('bar');
 ```
 
+#### URLPattern
+[mdn-url-pattern-api]: https://developer.mozilla.org/en-US/docs/Web/API/URLPattern
+
+You can also use the brand new [`URLPattern`][mdn-url-pattern-api] in the first arg.
+
+```js
+const pattern = new URLPattern('http{s}?://*.example.com/books/:id');
+onfetch(pattern);
+```
+
+In fact, the first arg accepts any object that has a `test` method that takes the URL string and returns a boolean value indicating the match result.
+
 #### Request
 
 You can also pass a [`Request`][mdn-request-api] object as the first arg, to match the request in a manner similar with the [`RequestInit` matcher](#requestinit).
