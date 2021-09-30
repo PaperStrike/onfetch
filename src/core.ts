@@ -1,7 +1,7 @@
 import Fetcher, { Context, Options } from './Fetcher';
 import InterceptRule, { passThrough } from './InterceptRule';
-import Channel from './lib/sw/Channel';
-import Worker from './lib/sw/Worker';
+import Channel from './lib/SW/Channel';
+import Worker from './lib/SW/Worker';
 
 export {
   Fetcher,
