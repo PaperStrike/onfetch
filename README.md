@@ -10,11 +10,12 @@
 [mdn-fetch-func]: https://developer.mozilla.org/en-US/docs/Web/API/fetch
 [mdn-request-api]: https://developer.mozilla.org/en-US/docs/Web/API/Request
 [mdn-response-api]: https://developer.mozilla.org/en-US/docs/Web/API/Response
+[mdn-global-this-global]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/globalThis
 
 [![Build Status](https://github.com/PaperStrike/onfetch/actions/workflows/test.yml/badge.svg)](https://github.com/PaperStrike/onfetch/actions/workflows/test.yml)
 [![npm Package](https://img.shields.io/npm/v/onfetch?logo=npm "onfetch")](https://www.npmjs.com/package/onfetch)
 
-Mock [`fetch()`][mdn-fetch-func] with native [`Request`][mdn-request-api] / [`Response`][mdn-response-api] API. Optionally, mock All with [Service Worker](#service-worker).
+Mock `fetch()` with native [`Request`][mdn-request-api] / [`Response`][mdn-response-api] API. Works with [`globalThis`][mdn-global-this-global], [service worker](#service-worker), [`@mswjs/interceptors`](#msw-interceptors), and [custom contexts](#custom-context).
 
 ---
 
@@ -24,7 +25,7 @@ Mock [`fetch()`][mdn-fetch-func] with native [`Request`][mdn-request-api] / [`Re
 [Redirect](#redirect),
 [Times](#times),
 [Restore](#restore),
-[Service Worker](#service-worker),
+[Context](#context),
 [Options](#options),
 [Q&A][q-a],
 or
@@ -347,7 +348,9 @@ onfetch.restore();
 onfetch.activate();
 ```
 
-## Service Worker
+## Context
+
+### Service Worker
 [mdn-service-worker-api]: https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API
 [mdn-xml-http-request-api]: https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest
 
@@ -388,6 +391,75 @@ self.addEventListener('message', ({ data }) => {
   // To re-activate, call `.activate()`.
   if (data?.example) onfetchWorker.restore();
 });
+```
+
+### MSW Interceptors
+[msw-interceptors]: https://github.com/mswjs/interceptors
+
+[`@mswjs/interceptors`][msw-interceptors] is a HTTP/HTTPS/XHR/fetch request interception library that can intercept most of the requests in Node.js.
+
+With the help of [`@mswjs/interceptors`][msw-interceptors], we can mock almost all the resources our Node tests requires. To install, run:
+
+```shell
+npm i @mswjs/interceptors --save-dev
+```
+
+Then somewhere in your test cases, call `useMSWInterceptors`.
+
+```js
+// Switch to @mswjs/interceptors mode.
+onfetch.useMSWInterceptors();
+```
+
+To switch back, call `onfetch.useDefault()`.
+
+### Auto Advanced
+
+Auto Advanced mode uses either [service worker mode](#service-worker) or [msw interceptors mode](#msw-interceptors) depending on whether the env supports the [Service Worker API][mdn-service-worker-api].
+
+```js
+// Switch to service worker mode, if the env supports it.
+// Otherwise, switch to @mswjs/interceptors mode.
+onfetch.useAutoAdvanced();
+```
+
+To switch back, call `onfetch.useDefault()`.
+
+### Custom Context
+
+`onfetch` works by replacing the `fetch` property of a given "context" with a mocked one. By default, this context refers to [`globalThis`][mdn-global-this-global]. The [service worker mode](#service-worker) and [msw interceptors mode](#msw-interceptors) integrates with `onfetch` by transmitting requests to the `fetch()` method of an object and passing this object to `onfetch` as the "context". By doing so `onfetch` can intercept the requests.
+
+You can write a custom context like:
+
+```js
+class SimpleContext {
+  fetch = async () => new Response('original');
+}
+
+const context = new SimpleContext();
+```
+
+Then use `onfetch.adopt()` to let `onfetch` use this `context`.
+
+```js
+onfetch.adopt(context);
+```
+
+Now, all the accesses to the `context`'s `fetch()` method get intercepted.
+
+```js
+onfetch('/basic').reply('mocked');
+onfetch('/bypass').reply(passThrough);
+
+// Logs 'mocked'
+context.fetch('/basic')
+  .then((res) => res.text())
+  .then(console.log);
+
+// Logs 'original'
+context.fetch('/bypass')
+  .then((res) => res.text())
+  .then(console.log);
 ```
 
 ## Request Flow
