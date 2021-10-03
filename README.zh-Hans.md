@@ -10,12 +10,11 @@
 [mdn-fetch-func]: https://developer.mozilla.org/en-US/docs/Web/API/fetch
 [mdn-request-api]: https://developer.mozilla.org/en-US/docs/Web/API/Request
 [mdn-response-api]: https://developer.mozilla.org/en-US/docs/Web/API/Response
-[mdn-global-this-global]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/globalThis
 
 [![CI 状态](https://github.com/PaperStrike/onfetch/actions/workflows/test.yml/badge.svg)](https://github.com/PaperStrike/onfetch/actions/workflows/test.yml)
 [![npm 包](https://img.shields.io/npm/v/onfetch?logo=npm "onfetch")](https://www.npmjs.com/package/onfetch)
 
-配合原生 [`Request`][mdn-request-api] / [`Response`][mdn-response-api] API 模拟 `fetch()` 请求响应。支持 [`globalThis`][mdn-global-this-global]，[service worker](#service-worker)，[msw interceptors](#msw-interceptors)，以及[自定义环境](#自定义环境)。
+配合原生 [`Request`][mdn-request-api] / [`Response`][mdn-response-api] API 模拟 `fetch()` 请求响应。支持 [`globalThis`](#默认)，[service worker](#service-worker)，[msw interceptors](#msw-interceptors)，以及[自定义环境](#自定义环境)。
 
 支持主流现代浏览器，兼容 [`node-fetch`](<https://github.com/node-fetch/node-fetch>)、[`whatwg-fetch`](<https://github.com/github/fetch>)、[`cross-fetch`](<https://github.com/lquixada/cross-fetch>) 等 Polyfill 库。
 
@@ -238,8 +237,8 @@ fetch('/foo').then((res) => res.text()).then(console.log);
 
 ### 局限
 
-- 在**非** [Service Worker 模式](#service-worker)下，重定向一个 [`redirect`][mdn-request-redirect] 属性值不为 `follow` 的 [`Request`][mdn-request-api] 请求将使原 fetch 抛出一个 `TypeError` 错误。
-- 在**非** [Service Worker 模式](#service-worker)下，重定向过的 [`Response`][mdn-response-api] 正确取值的 [`redirected`][mdn-response-redirected] 和 [`url`][mdn-response-url] 属性设置在该响应对象本身上。通过原型 prototype 读取将返回错误值。
+- 在[默认模式](#默认)下，重定向一个 [`redirect`][mdn-request-redirect] 属性值不为 `follow` 的 [`Request`][mdn-request-api] 请求将使原 fetch 抛出一个 `TypeError` 错误。
+- 在[默认模式](#默认)下，重定向过的 [`Response`][mdn-response-api] 正确取值的 [`redirected`][mdn-response-redirected] 和 [`url`][mdn-response-url] 属性设置在该响应对象本身上。通过原型 prototype 读取将返回错误值。
 
 ## 次数
 
@@ -349,6 +348,17 @@ onfetch.activate();
 
 ## 环境
 
+### 默认
+[mdn-global-this-global]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/globalThis
+
+普通模式下，`onfetch` 处理对 [`globalThis`][mdn-global-this-global] 上 `fetch()` 方法的调用。
+
+要从其他模式切换回此模式，调用：
+
+```js
+onfetch.useDefault();
+```
+
 ### Service Worker
 [mdn-service-worker-api]: https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API
 [mdn-xml-http-request-api]: https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest
@@ -410,8 +420,6 @@ npm i @mswjs/interceptors --save-dev
 onfetch.useMSWInterceptors();
 ```
 
-要切换回默认模式，调用 `onfetch.useDefault()`。
-
 ### Auto Advanced
 
 自动增强模式根据环境对 [Service Worker API][mdn-service-worker-api] 的支持情况自动选择 [service worker 模式](#service-worker) 或 [msw interceptors 模式](#msw-interceptors)。
@@ -421,8 +429,6 @@ onfetch.useMSWInterceptors();
 // 否则使用 @mswjs/interceptors 模式
 onfetch.useAutoAdvanced();
 ```
-
-要切换回默认模式，调用 `onfetch.useDefault()`。
 
 ### 自定义环境
 
@@ -536,7 +542,7 @@ onfetch.config({
 });
 ```
 
-在 [service worker 模式](#service-worker) 下，此选项默认为 `true`，因为浏览器会自己处理重定向（见[请求流程](#请求流程)）。我们也因此可以克服一些[重定向限制](#局限)。
+在 [增强模式](#auto-advanced) 下，此选项默认为 `true`，因为浏览器 / 下游包会自己处理重定向（见[请求流程](#请求流程)）。我们也因此可以克服一些[重定向限制](#局限)。
 
 ## Q&A
 

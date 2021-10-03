@@ -10,12 +10,11 @@
 [mdn-fetch-func]: https://developer.mozilla.org/en-US/docs/Web/API/fetch
 [mdn-request-api]: https://developer.mozilla.org/en-US/docs/Web/API/Request
 [mdn-response-api]: https://developer.mozilla.org/en-US/docs/Web/API/Response
-[mdn-global-this-global]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/globalThis
 
 [![Build Status](https://github.com/PaperStrike/onfetch/actions/workflows/test.yml/badge.svg)](https://github.com/PaperStrike/onfetch/actions/workflows/test.yml)
 [![npm Package](https://img.shields.io/npm/v/onfetch?logo=npm "onfetch")](https://www.npmjs.com/package/onfetch)
 
-Mock `fetch()` with native [`Request`][mdn-request-api] / [`Response`][mdn-response-api] API. Works with [`globalThis`][mdn-global-this-global], [service worker](#service-worker), [`@mswjs/interceptors`](#msw-interceptors), and [custom contexts](#custom-context).
+Mock `fetch()` with native [`Request`][mdn-request-api] / [`Response`][mdn-response-api] API. Works with [`globalThis`](#default), [service worker](#service-worker), [`@mswjs/interceptors`](#msw-interceptors), and [custom contexts](#custom-context).
 
 ---
 
@@ -239,8 +238,8 @@ fetch('/foo').then((res) => res.text()).then(console.log);
 
 ### Limitations
 
-- In Non-[Service Worker Mode](#service-worker), redirecting a [`Request`][mdn-request-api] with [`redirect`][mdn-request-redirect] set to a value other than `follow` will fail the fetch with a `TypeError`.
-- In Non-[Service Worker Mode](#service-worker), a redirected [`Response`][mdn-response-api] only has the correct [`redirected`][mdn-response-redirected] and [`url`][mdn-response-url] properties defined on the response object itself. Reading them via the prototype will give you incorrect values.
+- In [default mode](#default), redirecting a [`Request`][mdn-request-api] with [`redirect`][mdn-request-redirect] set to a value other than `follow` will fail the fetch with a `TypeError`.
+- In [default mode](#default), a redirected [`Response`][mdn-response-api] only has the correct [`redirected`][mdn-response-redirected] and [`url`][mdn-response-url] properties defined on the response object itself. Reading them via the prototype will give you incorrect values.
 
 ## Times
 
@@ -350,6 +349,17 @@ onfetch.activate();
 
 ## Context
 
+### Default
+[mdn-global-this-global]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/globalThis
+
+In the default mode, `onfetch` intercepts calls to the `fetch()` method on [`globalThis`][mdn-global-this-global].
+
+To switch back from another mode to this, run:
+
+```js
+onfetch.useDefault();
+```
+
 ### Service Worker
 [mdn-service-worker-api]: https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API
 [mdn-xml-http-request-api]: https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest
@@ -411,8 +421,6 @@ Then somewhere in your test cases, call `useMSWInterceptors`.
 onfetch.useMSWInterceptors();
 ```
 
-To switch back, call `onfetch.useDefault()`.
-
 ### Auto Advanced
 
 Auto Advanced mode uses either [service worker mode](#service-worker) or [msw interceptors mode](#msw-interceptors) depending on whether the env supports the [Service Worker API][mdn-service-worker-api].
@@ -422,8 +430,6 @@ Auto Advanced mode uses either [service worker mode](#service-worker) or [msw in
 // Otherwise, switch to @mswjs/interceptors mode.
 onfetch.useAutoAdvanced();
 ```
-
-To switch back, call `onfetch.useDefault()`.
 
 ### Custom Context
 
@@ -537,7 +543,7 @@ onfetch.config({
 });
 ```
 
-In [service worker mode](#service-worker), this defaults to `true`, as the browser will handle the redirect on its own (see [request flow](#request-flow)). So we can overcome some [redirect limitations](#limitations).
+In [advanced modes](#auto-advanced), this defaults to `true`, as the browser / downstream package will handle the redirections on its own (see [request flow](#request-flow)). So we can overcome some [redirect limitations](#limitations).
 
 ## Q&A
 
