@@ -8,9 +8,11 @@
   "browser": {
     "./src/lib/MSWInterceptors": false,
     "./build/lib/MSWInterceptors": false,
-    "expect": "@sliphua/expect",
+    "graceful-fs": false,
     "mocha": "mocha/mocha-es2018.js",
-    "node-fetch": false
+    "module": false,
+    "node-fetch": false,
+    "util": false
   },
   "exports": {
     ".": "./build/index.js",
@@ -62,7 +64,6 @@
   },
   "devDependencies": {
     "@mswjs/interceptors": "^0.12.7",
-    "@sliphua/expect": "^27.2.0",
     "@types/mocha": "^9.0.0",
     "@types/serviceworker": "^0.0.23",
     "@typescript-eslint/eslint-plugin": "^4.31.1",
