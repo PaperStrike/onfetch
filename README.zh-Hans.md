@@ -351,7 +351,7 @@ onfetch.activate();
 ### 默认
 [mdn-global-this-global]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/globalThis
 
-普通模式下，`onfetch` 处理对 [`globalThis`][mdn-global-this-global] 上 `fetch()` 方法的调用。
+默认模式下，`onfetch` 处理对 [`globalThis`][mdn-global-this-global] 上的 `fetch()` 方法的调用。
 
 要从其他模式切换回此模式，调用：
 
@@ -420,9 +420,9 @@ npm i @mswjs/interceptors --save-dev
 onfetch.useMSWInterceptors();
 ```
 
-### Auto Advanced
+### 自动扩展
 
-自动增强模式根据环境对 [Service Worker API][mdn-service-worker-api] 的支持情况自动选择 [service worker 模式](#service-worker) 或 [msw interceptors 模式](#msw-interceptors)。
+自动扩展模式根据环境对 [Service Worker API][mdn-service-worker-api] 的支持情况自动选择 [service worker 模式](#service-worker) 或 [msw interceptors 模式](#msw-interceptors)。
 
 ```js
 // 如果环境支持 service worker，使用 service worker 模式
@@ -432,7 +432,7 @@ onfetch.useAutoAdvanced();
 
 ### 自定义环境
 
-`onfetch` 通过替换目标 “环境” 的 `fetch` 属性来工作。默认工作环境为 [`globalThis`][mdn-global-this-global]。前述 [service worker 模式](#service-worker) 和 [msw interceptors 模式](#msw-interceptors)通过将请求引导给某一个对象的 `fetch()` 方法，并将该对象传递给 `onfetch` 作为工作 “环境”，完成与 `onfetch` 的配合。正是这样 `onfetch` 有了拦截处理这些请求的能力。
+`onfetch` 通过替换目标 “环境” 的 `fetch` 属性来工作。默认工作环境为 [`globalThis`][mdn-global-this-global]。前述 [service worker 模式](#service-worker) 和 [msw interceptors 模式](#msw-interceptors)通过将请求引导给某一个对象的 `fetch()` 方法，并将该对象传递给 `onfetch` 作为工作 “环境”，完成与 `onfetch` 的对接。正是这样 `onfetch` 有了拦截处理这些请求的能力。
 
 你可以定义如这样的环境：
 
@@ -531,9 +531,9 @@ class AbortError extends Error {
 }
 ```
 
-### 跳过重定向
+### 绕过重定向
 
-将此设为 `true` 可跳过 `onfetch` 的[重定向](#重定向)。
+将此设为 `true` 可绕过 `onfetch` 的[重定向](#重定向)。
 
 ```js
 import onfetch from 'onfetch';
@@ -542,7 +542,7 @@ onfetch.config({
 });
 ```
 
-在 [增强模式](#auto-advanced) 下，此选项默认为 `true`，因为浏览器 / 下游包会自己处理重定向（见[请求流程](#请求流程)）。我们也因此可以克服一些[重定向限制](#局限)。
+在[扩展模式](#自动扩展)下，此选项默认为 `true`，因为浏览器 / 下游包会自己处理重定向（见[请求流程](#请求流程)）。我们也因此可以克服一些[重定向限制](#局限)。
 
 ## Q&A
 
