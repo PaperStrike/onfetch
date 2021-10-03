@@ -8,27 +8,31 @@ export default class MSWInterceptors {
   /**
    * The fetch that bypasses the mock.
    */
-  fetch: typeof fetch = (input, init) => {
-    const request = new Request(input, init);
+  fetch: typeof fetch = (...args) => {
     this.bypassNext = true;
-    return fetch(request);
+    return fetch(...args);
   };
 
   /**
    * The resolver that parses the requests.
    */
-  resolver: Resolver = async (isomorphicRequest) => {
+  resolver: Resolver = async (isomorphicRequest, ref) => {
     if (this.bypassNext) {
       this.bypassNext = false;
       return undefined;
     }
-    const { url, body, ...requestInit } = isomorphicRequest;
-    const request = new Request(url.href, {
-      ...requestInit,
-      body: body || null,
-    });
+
+    const request = ref instanceof Request
+      ? ref
+      : new Request(isomorphicRequest.url.href, {
+        ...isomorphicRequest,
+        // avoid the invalid '' body in GET/HEAD requests.
+        body: isomorphicRequest.body || null,
+      });
+
     const response = await this.fetch(request);
     const { status, statusText, headers } = response;
+
     return {
       status,
       statusText,
