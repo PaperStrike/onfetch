@@ -6,6 +6,8 @@
   "main": "./build/index.js",
   "type": "module",
   "browser": {
+    "./src/lib/MSWInterceptors": false,
+    "./build/lib/MSWInterceptors": false,
     "expect": "@sliphua/expect",
     "mocha": "mocha/mocha-es2018.js",
     "node-fetch": false
@@ -33,7 +35,7 @@
     "build": "tsc",
     "lint": "eslint .",
     "prepare": "npm run build",
-    "test-browser": "playwright-test \"test/**/*.test.*\"",
+    "test-browser": "playwright-test \"test/**/*.test.*\" \"!test/**/node\" --sw src/sw.ts",
     "test-node": "mocha --experimental-specifier-resolution=node --experimental-abortcontroller",
     "test": "npm run test-browser && npm run test-node"
   },
@@ -55,7 +57,11 @@
   "author": "PaperStrike",
   "repository": "github:PaperStrike/onfetch",
   "license": "ISC",
+  "optionalDependencies": {
+    "@mswjs/interceptors": "^0.12.7"
+  },
   "devDependencies": {
+    "@mswjs/interceptors": "^0.12.7",
     "@sliphua/expect": "^27.2.0",
     "@types/mocha": "^9.0.0",
     "@types/serviceworker": "^0.0.23",
@@ -66,6 +72,7 @@
     "eslint-config-airbnb-typescript": "^14.0.0",
     "eslint-plugin-import": "^2.24.2",
     "expect": "^27.2.0",
+    "fastify": "^3.22.0",
     "mocha": "^9.1.1",
     "node-fetch": "^3.0.0",
     "playwright-fixtures": "^0.3.5",

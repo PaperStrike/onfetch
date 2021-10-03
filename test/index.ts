@@ -12,7 +12,14 @@ if (typeof fetch === 'undefined' && typeof nodeFetch !== 'undefined') {
   const { Request, Headers, Response } = nodeFetch;
   const baseURL = 'https://localhost/';
   Object.assign(globalThis, {
-    fetch: nodeFetch.default,
+    fetch: new Proxy(nodeFetch.default, {
+      apply(target, thisArg, [input, init]: Parameters<typeof nodeFetch.default>) {
+        if (typeof input === 'string') {
+          return target(new URL(input, baseURL).href, init);
+        }
+        return target(input, init);
+      },
+    }),
     Headers,
     Request: new Proxy(Request, {
       construct(Target, [input, init]: ConstructorParameters<typeof Request>) {

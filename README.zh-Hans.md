@@ -14,7 +14,7 @@
 [![CI 状态](https://github.com/PaperStrike/onfetch/actions/workflows/test.yml/badge.svg)](https://github.com/PaperStrike/onfetch/actions/workflows/test.yml)
 [![npm 包](https://img.shields.io/npm/v/onfetch?logo=npm "onfetch")](https://www.npmjs.com/package/onfetch)
 
-配合原生 [`Request`][mdn-request-api] / [`Response`][mdn-response-api] API 模拟 [`fetch()`][mdn-fetch-func] 请求响应。可选地，配合 [Service Worker](#service-worker) 模拟**所有**请求响应。
+配合原生 [`Request`][mdn-request-api] / [`Response`][mdn-response-api] API 模拟 `fetch()` 请求响应。支持 [`globalThis`](#默认)，[service worker](#service-worker)，[msw interceptors](#msw-interceptors)，以及[自定义环境](#自定义环境)。
 
 支持主流现代浏览器，兼容 [`node-fetch`](<https://github.com/node-fetch/node-fetch>)、[`whatwg-fetch`](<https://github.com/github/fetch>)、[`cross-fetch`](<https://github.com/lquixada/cross-fetch>) 等 Polyfill 库。
 
@@ -26,7 +26,7 @@
 [重定向](#重定向)，
 [次数](#次数)，
 [恢复](#恢复)，
-[Service Worker](#service-worker)，
+[环境](#环境)，
 [选项](#选项)，
 [Q&A][q-a]，
 或
@@ -237,8 +237,8 @@ fetch('/foo').then((res) => res.text()).then(console.log);
 
 ### 局限
 
-- 在**非** [Service Worker 模式](#service-worker)下，重定向一个 [`redirect`][mdn-request-redirect] 属性值不为 `follow` 的 [`Request`][mdn-request-api] 请求将使原 fetch 抛出一个 `TypeError` 错误。
-- 在**非** [Service Worker 模式](#service-worker)下，重定向过的 [`Response`][mdn-response-api] 正确取值的 [`redirected`][mdn-response-redirected] 和 [`url`][mdn-response-url] 属性设置在该响应对象本身上。通过原型 prototype 读取将返回错误值。
+- 在[默认模式](#默认)下，重定向一个 [`redirect`][mdn-request-redirect] 属性值不为 `follow` 的 [`Request`][mdn-request-api] 请求将使原 fetch 抛出一个 `TypeError` 错误。
+- 在[默认模式](#默认)下，重定向过的 [`Response`][mdn-response-api] 正确取值的 [`redirected`][mdn-response-redirected] 和 [`url`][mdn-response-url] 属性设置在该响应对象本身上。通过原型 prototype 读取将返回错误值。
 
 ## 次数
 
@@ -346,7 +346,20 @@ onfetch.restore();
 onfetch.activate();
 ```
 
-## Service Worker
+## 环境
+
+### 默认
+[mdn-global-this-global]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/globalThis
+
+默认模式下，`onfetch` 处理对 [`globalThis`][mdn-global-this-global] 上的 `fetch()` 方法的调用。
+
+要从其他模式切换回此模式，调用：
+
+```js
+onfetch.useDefault();
+```
+
+### Service Worker
 [mdn-service-worker-api]: https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API
 [mdn-xml-http-request-api]: https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest
 
@@ -387,6 +400,71 @@ self.addEventListener('message', ({ data }) => {
   // 可以使用 `.activate()` 重新启用
   if (data?.example) onfetchWorker.restore();
 });
+```
+
+### MSW Interceptors
+[msw-interceptors]: https://github.com/mswjs/interceptors
+
+[`@mswjs/interceptors`][msw-interceptors] 是一个可以拦截 Node.js 中绝大多数请求的 HTTP/HTTPS/XHR/fetch 请求拦截库。
+
+配合 [`@mswjs/interceptors`][msw-interceptors]，我们将可以拦截我们 Node 测试中几乎所有需要的请求资源。它可以通过下面的命令安装：
+
+```shell
+npm i @mswjs/interceptors --save-dev
+```
+
+然后在你测试样例的某处调用 `useMSWInterceptors`
+
+```js
+// 切换到 @mswjs/interceptors 模式
+onfetch.useMSWInterceptors();
+```
+
+### 自动扩展
+
+自动扩展模式根据环境对 [Service Worker API][mdn-service-worker-api] 的支持情况自动选择 [service worker 模式](#service-worker) 或 [msw interceptors 模式](#msw-interceptors)。
+
+```js
+// 如果环境支持 service worker，使用 service worker 模式
+// 否则使用 @mswjs/interceptors 模式
+onfetch.useAutoAdvanced();
+```
+
+### 自定义环境
+
+`onfetch` 通过替换目标 “环境” 的 `fetch` 属性来工作。默认工作环境为 [`globalThis`][mdn-global-this-global]。前述 [service worker 模式](#service-worker) 和 [msw interceptors 模式](#msw-interceptors)通过将请求引导给某一个对象的 `fetch()` 方法，并将该对象传递给 `onfetch` 作为工作 “环境”，完成与 `onfetch` 的对接。正是这样 `onfetch` 有了拦截处理这些请求的能力。
+
+你可以定义如这样的环境：
+
+```js
+class SimpleContext {
+  fetch = async () => new Response('original');
+}
+
+const context = new SimpleContext();
+```
+
+然后调用 `onfetch.adopt()` 使 `onfetch` 切换到该 `context` 环境。
+
+```js
+onfetch.adopt(context);
+```
+
+现在，所有对 `context` 的 `fetch()` 方法的访问都将被拦截。
+
+```js
+onfetch('/basic').reply('mocked');
+onfetch('/bypass').reply(passThrough);
+
+// 输出 'mocked'
+context.fetch('/basic')
+  .then((res) => res.text())
+  .then(console.log);
+
+// 输出 'original'
+context.fetch('/bypass')
+  .then((res) => res.text())
+  .then(console.log);
 ```
 
 ## 请求流程
@@ -453,9 +531,9 @@ class AbortError extends Error {
 }
 ```
 
-### 跳过重定向
+### 绕过重定向
 
-将此设为 `true` 可跳过 `onfetch` 的[重定向](#重定向)。
+将此设为 `true` 可绕过 `onfetch` 的[重定向](#重定向)。
 
 ```js
 import onfetch from 'onfetch';
@@ -464,7 +542,7 @@ onfetch.config({
 });
 ```
 
-在 [service worker 模式](#service-worker) 下，此选项默认为 `true`，因为浏览器会自己处理重定向（见[请求流程](#请求流程)）。我们也因此可以克服一些[重定向限制](#局限)。
+在[扩展模式](#自动扩展)下，此选项默认为 `true`，因为浏览器 / 下游包会自己处理重定向（见[请求流程](#请求流程)）。我们也因此可以克服一些[重定向限制](#局限)。
 
 ## Q&A
 
