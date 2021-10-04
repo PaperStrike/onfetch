@@ -356,7 +356,7 @@ onfetch.activate();
 要从其他模式切换回此模式，调用：
 
 ```js
-onfetch.useDefault();
+await onfetch.useDefault();
 ```
 
 ### Service Worker
@@ -371,7 +371,7 @@ onfetch.useDefault();
 // 在主页面脚本中
 import onfetch from 'onfetch';
 
-onfetch.useServiceWorker();
+await onfetch.useServiceWorker();
 
 onfetch('/script.js').reply('console.log(\'mocked!\')');
 const script = document.createElement('script');
@@ -388,17 +388,19 @@ document.head.append(script);
 import 'onfetch/sw';
 ```
 
-要切换回普通模式，在主页面端执行 `onfetch.useDefault()`。
+要在主页面端切换回普通模式，执行 `onfetch.useDefault()`。
 
-要停用 `onfetch/sw`，需提前储存其默认导入值，然后执行其 `restore` 方法。这之后，如果主页面端 `onfetch` 仍使用 service worker 模式，将拦截不到任何请求。
+要在 Worker 端停用 `onfetch/sw`，需提前储存其默认导入值，然后执行其 `restore` 方法。
 
 ```js
 // 在 service worker 中
 import onfetchWorker from 'onfetch/sw';
 
-self.addEventListener('message', ({ data }) => {
+self.addEventListener('message', async ({ data }) => {
   // 可以使用 `.activate()` 重新启用
-  if (data?.example) onfetchWorker.restore();
+  if (data?.example) await onfetchWorker.restore();
+
+  // ...
 });
 ```
 
@@ -417,7 +419,7 @@ npm i @mswjs/interceptors --save-dev
 
 ```js
 // 切换到 @mswjs/interceptors 模式
-onfetch.useMSWInterceptors();
+await onfetch.useMSWInterceptors();
 ```
 
 ### 自动扩展
@@ -427,7 +429,7 @@ onfetch.useMSWInterceptors();
 ```js
 // 如果环境支持 service worker，使用 service worker 模式
 // 否则使用 @mswjs/interceptors 模式
-onfetch.useAutoAdvanced();
+await onfetch.useAutoAdvanced();
 ```
 
 ### 自定义环境
@@ -447,7 +449,7 @@ const context = new SimpleContext();
 然后调用 `onfetch.adopt()` 使 `onfetch` 切换到该 `context` 环境。
 
 ```js
-onfetch.adopt(context);
+await onfetch.adopt(context);
 ```
 
 现在，所有对 `context` 的 `fetch()` 方法的访问都将被拦截。

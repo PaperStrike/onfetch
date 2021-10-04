@@ -357,7 +357,7 @@ In the default mode, `onfetch` intercepts calls to the `fetch()` method on [`glo
 To switch back from another mode to this, run:
 
 ```js
-onfetch.useDefault();
+await onfetch.useDefault();
 ```
 
 ### Service Worker
@@ -372,7 +372,7 @@ With the help of [Service Worker API][mdn-service-worker-api], you can now mock 
 // In the main browsing context.
 import onfetch from 'onfetch';
 
-onfetch.useServiceWorker();
+await onfetch.useServiceWorker();
 
 onfetch('/script.js').reply('console.log(\'mocked!\')');
 const script = document.createElement('script');
@@ -389,17 +389,19 @@ To enable this feature, import `onfetch/sw` in your service worker.
 import 'onfetch/sw';
 ```
 
-To switch back to the standard mode, call `onfetch.useDefault()` in the client side.
+To switch back to the standard mode in the client side, call `onfetch.useDefault()`.
 
-To disable `onfetch/sw`, store its default import value beforehand, and call its `restore` method. After that, if the client `onfetch` still uses the service worker mode, it will never intercept any requests.
+To disable `onfetch/sw` in the worker side, store its default import value beforehand, and call its `restore` method.
 
 ```js
 // In the service worker.
 import onfetchWorker from 'onfetch/sw';
 
-self.addEventListener('message', ({ data }) => {
+self.addEventListener('message', async ({ data }) => {
   // To re-activate, call `.activate()`.
-  if (data?.example) onfetchWorker.restore();
+  if (data?.example) await onfetchWorker.restore();
+
+  // ...
 });
 ```
 
@@ -418,7 +420,7 @@ Then somewhere in your test cases, call `useMSWInterceptors`.
 
 ```js
 // Switch to @mswjs/interceptors mode.
-onfetch.useMSWInterceptors();
+await onfetch.useMSWInterceptors();
 ```
 
 ### Auto Advanced
@@ -428,7 +430,7 @@ Auto Advanced mode uses either [service worker mode](#service-worker) or [msw in
 ```js
 // Switch to service worker mode, if the env supports it.
 // Otherwise, switch to @mswjs/interceptors mode.
-onfetch.useAutoAdvanced();
+await onfetch.useAutoAdvanced();
 ```
 
 ### Custom Context
@@ -448,7 +450,7 @@ const context = new SimpleContext();
 Then use `onfetch.adopt()` to let `onfetch` use this `context`.
 
 ```js
-onfetch.adopt(context);
+await onfetch.adopt(context);
 ```
 
 Now, all the accesses to the `context`'s `fetch()` method get intercepted.

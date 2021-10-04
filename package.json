@@ -18,6 +18,7 @@
     ".": "./build/index.js",
     "./sw": "./build/sw.js",
     "./core": "./build/core.js",
+    "./lib/*": "./build/lib/*.js",
     "./package.json": "./package.json"
   },
   "typesVersions": {
