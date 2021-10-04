@@ -114,7 +114,10 @@ export default class Worker {
     if (response instanceof Error) {
       fulfill[1](response);
     } else {
-      fulfill[0](new Response(response.body, response));
+      const originalResponse = response.type === 'error'
+        ? Response.error()
+        : new Response(response.body, response);
+      fulfill[0](originalResponse);
     }
     fulfillList[index] = null;
   };
