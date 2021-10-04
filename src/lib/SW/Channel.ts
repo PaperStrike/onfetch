@@ -1,5 +1,10 @@
 import toCloneable from './toCloneable';
-import { FulfillList, RequestMessage, ResponseMessage } from './Message';
+import {
+  FulfillList,
+  StatusMessage,
+  RequestMessage,
+  ResponseMessage,
+} from './Message';
 
 /**
  * A fetch receiver
@@ -52,15 +57,17 @@ export default class Channel {
   };
 
   onMessage = (event: MessageEvent): void => {
-    if (!this.beActive || !event.data) return;
+    if (!event.data) return;
 
     if ('request' in event.data) {
       // eslint-disable-next-line no-void
       void this.onRequestMessage(event);
     }
     if ('response' in event.data) {
-      // eslint-disable-next-line no-void
-      void this.onResponseMessage(event);
+      this.onResponseMessage(event);
+    }
+    if ('status' in event.data) {
+      this.onStatusMessage(event);
     }
   };
 
@@ -87,9 +94,9 @@ export default class Channel {
   /**
    * For messaged responses, treat as a previous received request's response.
    */
-  onResponseMessage = async (
+  onResponseMessage = (
     event: MessageEvent<ResponseMessage>,
-  ): Promise<void> => {
+  ): void => {
     const { data: { response, index } } = event;
     const { fulfillList } = this;
     if (!fulfillList) {
@@ -107,23 +114,45 @@ export default class Channel {
     fulfillList[index] = null;
   };
 
-  isActive(): boolean {
-    return this.beActive;
+  // Resolve when the service worker responds.
+  statusResolve: (() => void) | null = null;
+
+  onStatusMessage = (
+    event: MessageEvent<StatusMessage>,
+  ): void => {
+    const { data: { status } } = event;
+    const { port } = this;
+    if (!port) {
+      throw new Error('Service worker not ready yet');
+    }
+    this.beActive = status === 'on';
+    const { statusResolve } = this;
+    if (statusResolve) {
+      statusResolve();
+      this.statusResolve = null;
+    } else {
+      port.postMessage({ status });
+    }
+  };
+
+  isActive = (): boolean => this.beActive;
+
+  async switchToStatus(status: 'on' | 'off'): Promise<void> {
+    const { port } = this;
+    if (!port) return;
+    await new Promise<void>((resolve) => {
+      this.statusResolve = resolve;
+      port.postMessage({ status });
+    });
   }
 
   /**
    * Start receiving worker messages.
    */
-  activate(): void {
-    this.beActive = true;
-    this.port?.postMessage({ status: 'on' });
-  }
+  activate = (): Promise<void> => this.switchToStatus('on');
 
   /**
    * Stop receiving worker messages.
    */
-  restore(): void {
-    this.beActive = false;
-    this.port?.postMessage({ status: 'off' });
-  }
+  restore = (): Promise<void> => this.switchToStatus('off');
 }

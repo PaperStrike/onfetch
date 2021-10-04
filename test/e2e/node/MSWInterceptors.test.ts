@@ -14,11 +14,11 @@ test.describe('MSWInterceptors e2e', () => {
     await fastify.listen(0).then((address) => {
       fastifyAddress = address;
     });
-    onfetch.useMSWInterceptors();
+    await onfetch.useMSWInterceptors();
   });
   test.afterAll(async () => {
     await fastify.close();
-    onfetch.useDefault();
+    await onfetch.useDefault();
   });
 
   test('direct', async () => {

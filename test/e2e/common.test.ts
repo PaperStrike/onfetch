@@ -2,11 +2,11 @@ import { test, expect } from '..';
 import onfetch from '../../src';
 
 test.describe('common e2e', () => {
-  test.beforeAll(() => {
-    onfetch.useAutoAdvanced();
+  test.beforeAll(async () => {
+    await onfetch.useAutoAdvanced();
   });
-  test.afterAll(() => {
-    onfetch.useDefault();
+  test.afterAll(async () => {
+    await onfetch.useDefault();
   });
 
   test('basic', async () => {

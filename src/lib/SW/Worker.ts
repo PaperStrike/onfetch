@@ -18,8 +18,6 @@ export default class Worker {
 
   fulfillListMap: Map<MessagePort, FulfillList> = new Map();
 
-  private beActive = false;
-
   constructor(scope: ServiceWorkerGlobalScope) {
     this.scope = scope;
 
@@ -28,8 +26,6 @@ export default class Worker {
 
     // For clients' port registration.
     scope.addEventListener('message', (event) => {
-      if (!this.beActive) return;
-
       if (!event.data || !('onfetch' in event.data)) return;
 
       const { source } = event;
@@ -46,8 +42,6 @@ export default class Worker {
    * For captured requests, message back to the client.
    */
   onFetch = (event: FetchEvent): void => {
-    if (!this.beActive) return;
-
     const port = this.portMap.get(event.clientId);
     if (!port) return;
 
@@ -66,19 +60,17 @@ export default class Worker {
   };
 
   onMessage = (event: MessageEvent): void => {
-    if (!this.beActive || !event.data) return;
+    if (!event.data) return;
 
     if ('request' in event.data) {
       // eslint-disable-next-line no-void
       void this.onRequestMessage(event);
     }
     if ('response' in event.data) {
-      // eslint-disable-next-line no-void
-      void this.onResponseMessage(event);
+      this.onResponseMessage(event);
     }
     if ('status' in event.data) {
-      // eslint-disable-next-line no-void
-      void this.onStatusMessage(event);
+      this.onStatusMessage(event);
     }
   };
 
@@ -104,9 +96,9 @@ export default class Worker {
   /**
    * For messaged responses, treat as a previous captured request's response.
    */
-  onResponseMessage = async (
+  onResponseMessage = (
     event: MessageEvent<ResponseMessage>,
-  ): Promise<void> => {
+  ): void => {
     const { target, data: { response, index } } = event;
     if (!(target instanceof MessagePort)) {
       throw new Error('Request came from unknown source');
@@ -127,43 +119,53 @@ export default class Worker {
     fulfillList[index] = null;
   };
 
-  onStatusMessage = async (
+  statusResolveMap: Map<MessagePort, (() => void) | null> = new Map();
+
+  onStatusMessage = (
     event: MessageEvent<StatusMessage>,
-  ): Promise<void> => {
+  ): void => {
     const { target, data: { status } } = event;
     if (!(target instanceof MessagePort)) {
       throw new Error('Request came from unknown source');
     }
-    switch (status) {
-      case 'on': {
-        this.fulfillListMap.set(target, []);
-        break;
-      }
-      case 'off': {
-        this.fulfillListMap.delete(target);
-        break;
-      }
-      default: {
-        throw new Error('Unknown message status');
-      }
+    if (status === 'on') {
+      this.fulfillListMap.set(target, []);
+    } else {
+      this.fulfillListMap.delete(target);
+    }
+    const statusResolve = this.statusResolveMap.get(target);
+    if (statusResolve) {
+      statusResolve();
+      this.statusResolveMap.delete(target);
+    } else {
+      target.postMessage({ status });
     }
   };
 
-  isActive(): boolean {
-    return this.beActive;
+  hasActive(): boolean {
+    return this.fulfillListMap.size > 0;
+  }
+
+  async switchToStatus(status: 'on' | 'off'): Promise<void> {
+    const switchPromiseList = [...this.portMap.values()]
+      .map((port) => new Promise<void>((resolve) => {
+        this.statusResolveMap.set(port, resolve);
+        port.postMessage({ status });
+      }));
+    await Promise.all(switchPromiseList);
   }
 
   /**
    * Start capturing requests and receiving messages.
    */
-  activate(): void {
-    this.beActive = true;
+  async activate(): Promise<void> {
+    return this.switchToStatus('on');
   }
 
   /**
    * Stop capturing requests and receiving messages.
    */
-  restore(): void {
-    this.beActive = false;
+  async restore(): Promise<void> {
+    return this.switchToStatus('off');
   }
 }
