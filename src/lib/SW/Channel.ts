@@ -1,4 +1,5 @@
 import toCloneable from './toCloneable';
+import toNative from './toNative';
 import {
   FulfillList,
   StatusMessage,
@@ -42,7 +43,7 @@ export default class Channel {
   /**
    * For received requests, message to the service worker.
    */
-  fetch = async (...args: Parameters<typeof fetch>): Promise<Response> => {
+  fetch: typeof fetch = async (...args): Promise<Response> => {
     const { port, fulfillList } = this;
     if (!port || !fulfillList) {
       throw new Error('Service worker not ready yet');
@@ -82,11 +83,9 @@ export default class Channel {
     if (!port) {
       throw new Error('Service worker not ready yet');
     }
-    const responseOrError = await this.fetch(request.url, request).catch((err: Error) => err);
+    const response = await this.fetch(toNative(request)).catch((err: Error) => err);
     port.postMessage({
-      response: responseOrError instanceof Error
-        ? responseOrError
-        : await toCloneable(responseOrError),
+      response: await toCloneable(response),
       index,
     });
   };
@@ -106,10 +105,11 @@ export default class Channel {
     if (!fulfill) {
       throw new Error('Response came for unknown request');
     }
-    if (response instanceof Error) {
-      fulfill[1](response);
+    const nativeResponse = toNative(response);
+    if (nativeResponse instanceof Error) {
+      fulfill[1](nativeResponse);
     } else {
-      fulfill[0](new Response(response.body, response));
+      fulfill[0](nativeResponse);
     }
     fulfillList[index] = null;
   };
