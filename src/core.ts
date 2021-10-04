@@ -1,9 +1,6 @@
 import Fetcher from './Fetcher';
 import type { Context, Options } from './Fetcher';
 import InterceptRule, { passThrough } from './InterceptRule';
-import MSWInterceptors from './lib/MSWInterceptors';
-import Channel from './lib/SW/Channel';
-import Worker from './lib/SW/Worker';
 
 export {
   Fetcher,
@@ -11,9 +8,6 @@ export {
   Options,
   InterceptRule,
   passThrough,
-  MSWInterceptors,
-  Channel,
-  Worker,
 };
 
 export type OnfetchCall = ((input: RequestInfo | RegExp, init?: RequestInit) => InterceptRule);

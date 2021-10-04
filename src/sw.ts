@@ -1,4 +1,4 @@
-import { Worker } from './core';
+import Worker from './lib/SW/Worker';
 
 declare const globalThis: ServiceWorkerGlobalScope;
 

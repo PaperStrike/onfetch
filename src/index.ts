@@ -1,4 +1,6 @@
-import mockFetchOn, { MSWInterceptors, Channel, Onfetch } from './core';
+import mockFetchOn, { Onfetch } from './core';
+import MSWInterceptors from './lib/MSWInterceptors';
+import Channel from './lib/SW/Channel';
 
 export * from './core';
 export { mockFetchOn };
