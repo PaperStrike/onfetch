@@ -8,11 +8,9 @@
   "browser": {
     "./src/lib/MSWInterceptors": false,
     "./build/lib/MSWInterceptors": false,
-    "graceful-fs": false,
+    "jest-message-util": false,
     "mocha": "mocha/mocha-es2018.js",
-    "module": false,
-    "node-fetch": false,
-    "util": false
+    "node-fetch": false
   },
   "exports": {
     ".": "./build/index.js",
