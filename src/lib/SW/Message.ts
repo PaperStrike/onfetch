@@ -1,4 +1,4 @@
-import { CloneableRequest, CloneableResponse } from './toCloneable';
+import { CloneableError, CloneableRequest, CloneableResponse } from './toCloneable';
 
 export interface StatusMessage {
   status: 'on' | 'off';
@@ -15,5 +15,5 @@ export interface RequestMessage extends NetworkMessage {
 }
 
 export interface ResponseMessage extends NetworkMessage {
-  response: CloneableResponse | Error;
+  response: CloneableResponse | CloneableError;
 }

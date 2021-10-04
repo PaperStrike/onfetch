@@ -1,4 +1,5 @@
 import toCloneable from './toCloneable';
+import toNative from './toNative';
 import {
   FulfillList,
   StatusMessage,
@@ -84,11 +85,9 @@ export default class Worker {
     if (!(target instanceof MessagePort) || !this.fulfillListMap.has(target)) {
       throw new Error('Request came from unrecognized source');
     }
-    const responseOrError = await this.scope.fetch(request.url, request).catch((err: Error) => err);
+    const response = await this.scope.fetch(toNative(request)).catch((err: Error) => err);
     target.postMessage({
-      response: responseOrError instanceof Error
-        ? responseOrError
-        : await toCloneable(responseOrError),
+      response: await toCloneable(response),
       index,
     });
   };
@@ -111,13 +110,11 @@ export default class Worker {
     if (!fulfill) {
       throw new Error('Response came for unknown request');
     }
-    if (response instanceof Error) {
-      fulfill[1](response);
+    const nativeResponse = toNative(response);
+    if (nativeResponse instanceof Error) {
+      fulfill[1](nativeResponse);
     } else {
-      const originalResponse = response.type === 'error'
-        ? Response.error()
-        : new Response(response.body, response);
-      fulfill[0](originalResponse);
+      fulfill[0](nativeResponse);
     }
     fulfillList[index] = null;
   };
