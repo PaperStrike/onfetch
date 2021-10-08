@@ -498,10 +498,8 @@ onfetch.config({
 Defaults to:
 
 ```js
-new InterceptRule('').reply((request) => {
-  throw new Error('No onfetch rule matches this fetch request', {
-    cause: request,
-  });
+new InterceptRule('').reply((req) => {
+  throw new Error(`No onfetch rule matches this request to '${req.url}'`);
 })
 ```
 
