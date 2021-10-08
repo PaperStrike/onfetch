@@ -16,12 +16,8 @@ export type Context = { fetch: typeof fetch };
  */
 export default class Fetcher {
   private readonly options: Options = {
-    defaultRule: new InterceptRule('').reply((request) => {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore until https://github.com/microsoft/TypeScript/issues/45167
-      throw new Error('No onfetch rule matches this fetch request', {
-        cause: request,
-      });
+    defaultRule: new InterceptRule('').reply(() => {
+      throw new Error('No onfetch rule matches this fetch request');
     }),
     AbortError,
     bypassRedirect: false,

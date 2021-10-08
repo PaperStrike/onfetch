@@ -15,11 +15,7 @@ export type Reply = ReplyValue | Promise<ReplyValue> | ReplyCallback;
 const splitSearchAndHash = (url: string): [string, string | undefined, string | undefined] => {
   const matchResult = /^(.*?)(\?.*?)?(#.*)?$/.exec(url);
   if (!matchResult) {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore until https://github.com/microsoft/TypeScript/issues/45167
-    throw new Error('Failed to split search and hash from the input', {
-      cause: url,
-    });
+    throw new Error('Failed to split search and hash from the input');
   }
   const [, path, search, hash] = matchResult;
   return [path, search, hash];
@@ -163,11 +159,7 @@ export default class InterceptRule {
 
     // Throw if no replier provided.
     if (replier === undefined) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore until https://github.com/microsoft/TypeScript/issues/45167
-      throw new Error('No reply body or callback configured on this onfetch rule', {
-        cause: this,
-      });
+      throw new Error('No reply body or callback configured on this onfetch rule');
     }
 
     // Apply delay.

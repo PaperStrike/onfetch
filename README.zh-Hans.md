@@ -498,9 +498,7 @@ onfetch.config({
 
 ```js
 new InterceptRule('').reply((request) => {
-  throw new Error('No onfetch rule matches this fetch request', {
-    cause: request,
-  });
+  throw new Error('No onfetch rule matches this fetch request');
 })
 ```
 
