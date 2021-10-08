@@ -15,7 +15,7 @@ export type Reply = ReplyValue | Promise<ReplyValue> | ReplyCallback;
 const splitSearchAndHash = (url: string): [string, string | undefined, string | undefined] => {
   const matchResult = /^(.*?)(\?.*?)?(#.*)?$/.exec(url);
   if (!matchResult) {
-    throw new Error('Failed to split search and hash from the input');
+    throw new Error(`Failed to split search and hash from '${url}'`);
   }
   const [, path, search, hash] = matchResult;
   return [path, search, hash];

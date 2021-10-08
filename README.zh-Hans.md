@@ -497,8 +497,8 @@ onfetch.config({
 默认值：
 
 ```js
-new InterceptRule('').reply((request) => {
-  throw new Error('No onfetch rule matches this fetch request');
+new InterceptRule('').reply((req) => {
+  throw new Error(`No onfetch rule matches this request to '${req.url}'`);
 })
 ```
 

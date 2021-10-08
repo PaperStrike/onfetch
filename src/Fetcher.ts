@@ -16,8 +16,8 @@ export type Context = { fetch: typeof fetch };
  */
 export default class Fetcher {
   private readonly options: Options = {
-    defaultRule: new InterceptRule('').reply(() => {
-      throw new Error('No onfetch rule matches this fetch request');
+    defaultRule: new InterceptRule('').reply((req) => {
+      throw new Error(`No onfetch rule matches this request to '${req.url}'`);
     }),
     AbortError,
     bypassRedirect: false,
