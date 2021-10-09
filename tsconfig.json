@@ -11,7 +11,7 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "ES2018",
-    "types": ["mocha", "serviceworker"],
+    "types": ["serviceworker"],
     "useDefineForClassFields": true
   },
   "include": ["./src"],

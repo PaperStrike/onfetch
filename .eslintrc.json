@@ -12,20 +12,9 @@
     "airbnb-typescript/base"
   ],
   "ignorePatterns": ["build/"],
-  "overrides": [
-    {
-      "files": ["src/lib/**"],
-      "rules": {
-        "import/no-extraneous-dependencies": ["error", {
-          "devDependencies": false,
-          "optionalDependencies": true
-        }]
-      }
-    }
-  ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "project": "./tsconfig.eslint.json"
+    "project": ["./tsconfig.json", "./test/tsconfig.json"]
   },
   "plugins": [
     "@typescript-eslint"
