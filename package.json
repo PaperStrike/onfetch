@@ -58,8 +58,13 @@
   "author": "PaperStrike",
   "repository": "github:PaperStrike/onfetch",
   "license": "ISC",
-  "optionalDependencies": {
+  "peerDependencies": {
     "@mswjs/interceptors": "^0.12.7"
+  },
+  "peerDependenciesMeta": {
+    "@mswjs/interceptors": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@mswjs/interceptors": "^0.12.7",
