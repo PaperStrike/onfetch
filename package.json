@@ -58,11 +58,15 @@
   "author": "PaperStrike",
   "repository": "github:PaperStrike/onfetch",
   "license": "ISC",
-  "optionalDependencies": {
+  "peerDependencies": {
     "@mswjs/interceptors": "^0.12.7"
   },
+  "peerDependenciesMeta": {
+    "@mswjs/interceptors": {
+      "optional": true
+    }
+  },
   "devDependencies": {
-    "@mswjs/interceptors": "^0.12.7",
     "@types/mocha": "^9.0.0",
     "@types/serviceworker": "^0.0.25",
     "@typescript-eslint/eslint-plugin": "^4.31.1",
