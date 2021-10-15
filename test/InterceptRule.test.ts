@@ -121,10 +121,17 @@ test.describe('reply', () => {
     ),
   });
 
-  replyTest('all error in callback to be Error', async ({ replyAs }) => {
-    // eslint-disable-next-line prefer-promise-reject-errors
-    const replyPromise = replyAs(() => Promise.reject('non-Error'));
-    await expect(replyPromise).rejects.toBeInstanceOf(Error);
+  replyTest('error in callback to be rethrown with `cause`', async ({ replyAs }) => {
+    const p = [new Error('normal Error'), 'non-Error'].map(async (error) => {
+      // eslint-disable-next-line @typescript-eslint/no-throw-literal
+      await expect(replyAs(() => { throw error; }))
+        .rejects.toMatchObject({ cause: error });
+
+      // eslint-disable-next-line prefer-promise-reject-errors
+      await expect(replyAs(() => Promise.reject(error)))
+        .rejects.toMatchObject({ cause: error });
+    });
+    await expect(Promise.all(p)).resolves.not.toThrow();
   });
 
   replyTest('promises', async ({ replyAs }) => {

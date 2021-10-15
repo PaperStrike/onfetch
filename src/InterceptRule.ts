@@ -167,11 +167,13 @@ export default class InterceptRule {
 
     // Execute callback.
     const bodyInitOrResponse = typeof replier === 'function'
-      // Ensure thrown error to be Error.
-      ? await Promise.resolve(replier(request, fetchers))
-        .catch((err) => {
-          if (err instanceof Error) throw err;
-          throw new Error(`The reply callback threw an error: ${String(err)}`);
+      ? await new Promise<ReplyValue>((resolve) => resolve(replier(request, fetchers)))
+        .catch((err: unknown) => {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore until https://github.com/microsoft/TypeScript/issues/45167
+          throw new Error('The reply callback threw an error', {
+            cause: err,
+          });
         })
       : await replier;
 

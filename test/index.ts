@@ -1,6 +1,7 @@
 import fixtureWrap from 'playwright-fixtures';
 import expect from 'expect';
 import * as nodeFetch from 'node-fetch';
+import 'error-cause/auto';
 
 // Here until https://github.com/node-fetch/node-fetch/pull/1169
 declare class RealNodeResponse extends nodeFetch.Response {
