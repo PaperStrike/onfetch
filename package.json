@@ -1,6 +1,6 @@
 {
   "name": "onfetch",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "Mock fetch() with native Request / Response API. Works with globalThis, service worker, @mswjs/interceptors, and custom contexts",
   "types": "./build/index.d.ts",
   "main": "./build/index.js",
@@ -69,7 +69,7 @@
   "devDependencies": {
     "@mswjs/interceptors": "^0.12.7",
     "@types/mocha": "^9.0.0",
-    "@types/serviceworker": "^0.0.25",
+    "@types/serviceworker": "^0.0.26",
     "@typescript-eslint/eslint-plugin": "^4.31.1",
     "@typescript-eslint/parser": "^4.31.1",
     "error-cause": "https://npm@github.com/es-shims/error-cause.git#77dd54f71f220fd65bcc8f7708de3e96248451d6",
