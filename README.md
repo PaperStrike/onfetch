@@ -543,7 +543,7 @@ onfetch.config({
 });
 ```
 
-In [advanced modes](#auto-advanced), this defaults to `true`, as the browser / downstream package will handle the redirections on its own (see [request flow](#request-flow)). So we can overcome some [redirect limitations](#limitations).
+In [advanced modes](#auto-advanced), this defaults to `true`, as the browser / upstream package will handle the redirections on its own (see [request flow](#request-flow)). So we can overcome some [redirect limitations](#limitations).
 
 ## Q&A
 
