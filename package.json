@@ -41,9 +41,7 @@
     "test": "npm run test-browser && npm run test-node"
   },
   "files": [
-    "src",
-    "build",
-    "tsconfig.json"
+    "build"
   ],
   "keywords": [
     "mock",
