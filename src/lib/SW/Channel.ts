@@ -45,7 +45,7 @@ export default class Channel extends MessageProcessor {
   /**
    * For received requests, message to the service worker.
    */
-  fetch: typeof fetch = async (...args): Promise<Response> => {
+  fetch: typeof fetch = async (...args) => {
     const { port, fulfillList } = this;
     if (!port || !fulfillList) {
       throw new Error('Service worker not ready yet');
@@ -115,9 +115,11 @@ export default class Channel extends MessageProcessor {
     }
   }
 
-  isActive = (): boolean => this.beActive;
+  isActive() {
+    return this.beActive;
+  }
 
-  async switchToStatus(status: 'on' | 'off'): Promise<void> {
+  async switchToStatus(status: 'on' | 'off') {
     const { port } = this;
     if (!port) return;
     await new Promise<void>((resolve) => {
@@ -129,10 +131,14 @@ export default class Channel extends MessageProcessor {
   /**
    * Start receiving worker messages.
    */
-  activate = (): Promise<void> => this.switchToStatus('on');
+  activate() {
+    return this.switchToStatus('on');
+  }
 
   /**
    * Stop receiving worker messages.
    */
-  restore = (): Promise<void> => this.switchToStatus('off');
+  restore() {
+    return this.switchToStatus('off');
+  }
 }

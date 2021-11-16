@@ -54,11 +54,11 @@ export default class MSWInterceptors {
     resolver: this.resolver,
   });
 
-  activate = (): void => {
+  activate() {
     this.interceptor.apply();
-  };
+  }
 
-  restore = (): void => {
+  restore() {
     this.interceptor.restore();
-  };
+  }
 }

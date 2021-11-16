@@ -126,11 +126,11 @@ export default class Worker extends MessageProcessor {
     }
   }
 
-  hasActive(): boolean {
+  hasActive() {
     return this.fulfillListMap.size > 0;
   }
 
-  async switchToStatus(status: 'on' | 'off'): Promise<void> {
+  async switchToStatus(status: 'on' | 'off') {
     const switchPromiseList = [...this.portMap.values()]
       .map((port) => new Promise<void>((resolve) => {
         this.statusResolveMap.set(port, resolve);
@@ -142,14 +142,14 @@ export default class Worker extends MessageProcessor {
   /**
    * Start capturing requests and receiving messages.
    */
-  async activate(): Promise<void> {
+  async activate() {
     return this.switchToStatus('on');
   }
 
   /**
    * Stop capturing requests and receiving messages.
    */
-  async restore(): Promise<void> {
+  async restore() {
     return this.switchToStatus('off');
   }
 }

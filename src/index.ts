@@ -16,9 +16,9 @@ let mswInterceptors: MSWInterceptors;
 
 // Context helpers.
 export interface ContextHelpers {
-  isActive?: () => boolean;
-  activate?: () => void | Promise<void>;
-  restore?: () => void | Promise<void>;
+  isActive?(): boolean;
+  activate?(): void | Promise<void>;
+  restore?(): void | Promise<void>;
 }
 
 // Context helpers.
