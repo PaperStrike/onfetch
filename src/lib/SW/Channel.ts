@@ -61,13 +61,13 @@ export default class Channel {
 
     if ('request' in event.data) {
       // eslint-disable-next-line no-void
-      void this.onRequestMessage(event);
+      void this.onRequestMessage(event as MessageEvent<RequestMessage>);
     }
     if ('response' in event.data) {
-      this.onResponseMessage(event);
+      this.onResponseMessage(event as MessageEvent<ResponseMessage>);
     }
     if ('status' in event.data) {
-      this.onStatusMessage(event);
+      this.onStatusMessage(event as MessageEvent<StatusMessage>);
     }
   };
 
