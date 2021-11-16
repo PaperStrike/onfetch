@@ -163,11 +163,15 @@ export default class InterceptRule {
     }
 
     // Apply delay.
-    if (delayDuration > 0) await new Promise((r) => setTimeout(r, delayDuration));
+    if (delayDuration > 0) {
+      await new Promise((r) => {
+        setTimeout(r, delayDuration);
+      });
+    }
 
     // Execute callback.
     const bodyInitOrResponse = typeof replier === 'function'
-      ? await new Promise<ReplyValue>((resolve) => resolve(replier(request, fetchers)))
+      ? await (async () => replier(request, fetchers))()
         .catch((err: unknown) => {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore until https://github.com/microsoft/TypeScript/issues/45167
