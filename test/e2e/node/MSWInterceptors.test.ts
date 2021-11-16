@@ -21,14 +21,28 @@ test.describe('MSWInterceptors e2e', () => {
     await onfetch.useDefault();
   });
 
-  test('direct', async () => {
-    onfetch('/server-status').reply(passThrough);
-    onfetch('/server-status').reply('mocked');
+  test.describe('bypass', () => {
+    test('basic', async () => {
+      onfetch('/server-status').reply(passThrough);
 
-    const directRes = await fetch(`${fastifyAddress}/server-status`);
-    await expect(directRes.text()).resolves.toBe('ready');
+      const bypassRes = await fetch(`${fastifyAddress}/server-status`);
+      await expect(bypassRes.text()).resolves.toBe('ready');
+    });
 
-    const afterRes = await fetch(`${fastifyAddress}/server-status`);
-    await expect(afterRes.text()).resolves.toBe('mocked');
+    test('parallel', () => Promise.all(
+      Array(2).fill(null).map(async () => {
+        onfetch('/server-status').reply(passThrough);
+        onfetch('/server-status').reply('mocked');
+
+        const [bypassRes, afterRes] = await Promise.all([
+          fetch(`${fastifyAddress}/server-status`),
+          fetch(`${fastifyAddress}/server-status`),
+        ]);
+        await Promise.all([
+          expect(bypassRes.text()).resolves.toBe('ready'),
+          expect(afterRes.text()).resolves.toBe('mocked'),
+        ]);
+      }),
+    ));
   });
 });
