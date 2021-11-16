@@ -4,6 +4,7 @@ import {
   StatusMessage,
   RequestMessage,
   ResponseMessage,
+  MessageProcessor,
 } from './Message';
 
 /**
@@ -11,7 +12,7 @@ import {
  * - For captured requests, message back to client.
  * - For messaged requests, message back the real response.
  */
-export default class Worker {
+export default class Worker extends MessageProcessor {
   scope: ServiceWorkerGlobalScope;
 
   portMap: Map<string, MessagePort> = new Map();
@@ -19,10 +20,12 @@ export default class Worker {
   fulfillListMap: Map<MessagePort, FulfillList> = new Map();
 
   constructor(scope: ServiceWorkerGlobalScope) {
+    super();
+
     this.scope = scope;
 
     // Service worker listeners can only be added on the initial evaluation.
-    scope.addEventListener('fetch', this.onFetch);
+    scope.addEventListener('fetch', this.onFetch.bind(this));
 
     // For clients' port registration.
     scope.addEventListener('message', (event) => {
@@ -34,14 +37,14 @@ export default class Worker {
 
       const [port] = event.ports;
       this.portMap.set(source.id, port);
-      port.onmessage = this.onMessage;
+      port.onmessage = this.onMessage.bind(this);
     });
   }
 
   /**
    * For captured requests, message back to the client.
    */
-  onFetch = (event: FetchEvent): void => {
+  onFetch(event: FetchEvent) {
     const port = this.portMap.get(event.clientId);
     if (!port) return;
 
@@ -57,29 +60,12 @@ export default class Worker {
         fulfillList.push([resolve, reject]);
       });
     })());
-  };
-
-  onMessage = (event: MessageEvent): void => {
-    if (!event.data) return;
-
-    if ('request' in event.data) {
-      // eslint-disable-next-line no-void
-      void this.onRequestMessage(event as MessageEvent<RequestMessage>);
-    }
-    if ('response' in event.data) {
-      this.onResponseMessage(event as MessageEvent<ResponseMessage>);
-    }
-    if ('status' in event.data) {
-      this.onStatusMessage(event as MessageEvent<StatusMessage>);
-    }
-  };
+  }
 
   /**
    * For messaged requests, respond with real responses.
    */
-  onRequestMessage = async (
-    event: MessageEvent<RequestMessage>,
-  ): Promise<void> => {
+  async onRequestMessage(event: MessageEvent<RequestMessage>) {
     const { target, data: { request, index } } = event;
     if (!(target instanceof MessagePort) || !this.fulfillListMap.has(target)) {
       throw new Error('Request came from unrecognized source');
@@ -89,14 +75,12 @@ export default class Worker {
       response: response instanceof Error ? response : await toCloneable(response),
       index,
     });
-  };
+  }
 
   /**
    * For messaged responses, treat as a previous captured request's response.
    */
-  onResponseMessage = (
-    event: MessageEvent<ResponseMessage>,
-  ): void => {
+  onResponseMessage(event: MessageEvent<ResponseMessage>) {
     const { target, data: { response, index } } = event;
     if (!(target instanceof MessagePort)) {
       throw new Error('Request came from unknown source');
@@ -119,13 +103,11 @@ export default class Worker {
       fulfill[0](nativeResponse);
     }
     fulfillList[index] = null;
-  };
+  }
 
   statusResolveMap: Map<MessagePort, (() => void) | null> = new Map();
 
-  onStatusMessage = (
-    event: MessageEvent<StatusMessage>,
-  ): void => {
+  onStatusMessage(event: MessageEvent<StatusMessage>) {
     const { target, data: { status } } = event;
     if (!(target instanceof MessagePort)) {
       throw new Error('Request came from unknown source');
@@ -142,7 +124,7 @@ export default class Worker {
     } else {
       target.postMessage({ status });
     }
-  };
+  }
 
   hasActive(): boolean {
     return this.fulfillListMap.size > 0;

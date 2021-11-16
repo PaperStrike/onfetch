@@ -4,6 +4,7 @@ import {
   StatusMessage,
   RequestMessage,
   ResponseMessage,
+  MessageProcessor,
 } from './Message';
 
 /**
@@ -11,7 +12,7 @@ import {
  * - For received requests, message to service worker.
  * - For messaged requests, send to the receiver. <- Intercept here.
  */
-export default class Channel {
+export default class Channel extends MessageProcessor {
   port?: MessagePort;
 
   fulfillList?: FulfillList;
@@ -19,25 +20,27 @@ export default class Channel {
   private beActive = false;
 
   constructor(workerContainer: ServiceWorkerContainer) {
+    super();
+
     this.registerController(workerContainer);
     workerContainer.addEventListener('controllerchange', () => {
       this.registerController(workerContainer);
     });
   }
 
-  private registerController = (workerContainer: ServiceWorkerContainer): void => {
+  private registerController(workerContainer: ServiceWorkerContainer) {
     const { controller } = workerContainer;
     if (!controller) return;
 
     const { port1, port2 } = new MessageChannel();
-    port1.onmessage = this.onMessage;
+    port1.onmessage = this.onMessage.bind(this);
 
     this.port = port1;
     this.fulfillList = [];
     controller.postMessage({ onfetch: true }, [port2]);
 
     if (this.beActive) port1.postMessage({ status: 'on' });
-  };
+  }
 
   /**
    * For received requests, message to the service worker.
@@ -56,27 +59,10 @@ export default class Channel {
     });
   };
 
-  onMessage = (event: MessageEvent): void => {
-    if (!event.data) return;
-
-    if ('request' in event.data) {
-      // eslint-disable-next-line no-void
-      void this.onRequestMessage(event as MessageEvent<RequestMessage>);
-    }
-    if ('response' in event.data) {
-      this.onResponseMessage(event as MessageEvent<ResponseMessage>);
-    }
-    if ('status' in event.data) {
-      this.onStatusMessage(event as MessageEvent<StatusMessage>);
-    }
-  };
-
   /**
    * For messaged requests, send to the receiver.
    */
-  onRequestMessage = async (
-    event: MessageEvent<RequestMessage>,
-  ): Promise<void> => {
+  async onRequestMessage(event: MessageEvent<RequestMessage>) {
     const { data: { request, index } } = event;
     const { port } = this;
     if (!port) {
@@ -87,14 +73,12 @@ export default class Channel {
       response: response instanceof Error ? response : await toCloneable(response),
       index,
     });
-  };
+  }
 
   /**
    * For messaged responses, treat as a previous received request's response.
    */
-  onResponseMessage = (
-    event: MessageEvent<ResponseMessage>,
-  ): void => {
+  onResponseMessage(event: MessageEvent<ResponseMessage>) {
     const { data: { response, index } } = event;
     const { fulfillList } = this;
     if (!fulfillList) {
@@ -110,14 +94,12 @@ export default class Channel {
       fulfill[0](new Response(response.body, response));
     }
     fulfillList[index] = null;
-  };
+  }
 
   // Resolve when the service worker responds.
   statusResolve: (() => void) | null = null;
 
-  onStatusMessage = (
-    event: MessageEvent<StatusMessage>,
-  ): void => {
+  onStatusMessage(event: MessageEvent<StatusMessage>) {
     const { data: { status } } = event;
     const { port } = this;
     if (!port) {
@@ -131,7 +113,7 @@ export default class Channel {
     } else {
       port.postMessage({ status });
     }
-  };
+  }
 
   isActive = (): boolean => this.beActive;
 

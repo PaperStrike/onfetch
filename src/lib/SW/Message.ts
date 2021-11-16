@@ -17,3 +17,21 @@ export interface RequestMessage extends NetworkMessage {
 export interface ResponseMessage extends NetworkMessage {
   response: CloneableResponse | Error;
 }
+
+export abstract class MessageProcessor {
+  abstract onRequestMessage(event: MessageEvent<RequestMessage>): unknown;
+  abstract onResponseMessage(event: MessageEvent<ResponseMessage>): unknown;
+  abstract onStatusMessage(event: MessageEvent<StatusMessage>): unknown;
+
+  onMessage(event: MessageEvent<RequestMessage | ResponseMessage | StatusMessage>) {
+    if ('request' in event.data) {
+      this.onRequestMessage(event as MessageEvent<RequestMessage>);
+    }
+    if ('response' in event.data) {
+      this.onResponseMessage(event as MessageEvent<ResponseMessage>);
+    }
+    if ('status' in event.data) {
+      this.onStatusMessage(event as MessageEvent<StatusMessage>);
+    }
+  }
+}
