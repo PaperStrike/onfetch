@@ -14,22 +14,21 @@ const isInNode = typeof process !== 'undefined' && process?.release?.name === 'n
 let channel: Channel;
 let mswInterceptors: MSWInterceptors;
 
-// Lib controllers.
-let libIsActive: (() => boolean) | undefined;
-let libActivate: (() => void | Promise<void>) | undefined;
-let libRestore: (() => void | Promise<void>) | undefined;
-
-// Mock globalThis and activate by default.
-const fetchMock = mockFetchOn(globalThis);
-fetchMock.activate();
-
-export interface ContextControllers {
+// Context helpers.
+export interface ContextHelpers {
   isActive?: () => boolean;
   activate?: () => void | Promise<void>;
   restore?: () => void | Promise<void>;
 }
 
-const onfetch: OnfetchCall & Omit<Onfetch, keyof ContextControllers | 'adopt'> & {
+// Context helpers.
+let contextHelpers: ContextHelpers = {};
+
+// Mock globalThis and activate by default.
+const fetchMock = mockFetchOn(globalThis);
+fetchMock.activate();
+
+const onfetch: OnfetchCall & Omit<Onfetch, keyof ContextHelpers | 'adopt'> & {
   useServiceWorker(): Promise<void>;
   useMSWInterceptors(): Promise<void>;
   useAutoAdvanced(): Promise<void>;
@@ -37,7 +36,7 @@ const onfetch: OnfetchCall & Omit<Onfetch, keyof ContextControllers | 'adopt'> &
   isActive(): boolean;
   activate(): Promise<void>;
   restore(): Promise<void>;
-  adopt(context: Context, helpers?: ContextControllers): Promise<void>;
+  adopt(context: Context, helpers?: ContextHelpers): Promise<void>;
 } = Object.assign(
   // Use a copy to avoid overwriting the fetchMock props in runtime.
   fetchMock.bind(fetchMock),
@@ -94,28 +93,25 @@ const onfetch: OnfetchCall & Omit<Onfetch, keyof ContextControllers | 'adopt'> &
     },
 
     isActive() {
-      return libIsActive ? libIsActive() : fetchMock.isActive.call(fetchMock);
+      return contextHelpers.isActive?.() ?? fetchMock.isActive();
     },
 
     async activate() {
-      await libActivate?.();
+      await contextHelpers.activate?.();
       fetchMock.activate();
     },
 
     async restore() {
       fetchMock.restore();
-      await libRestore?.();
+      await contextHelpers.restore?.();
     },
 
-    async adopt(context: Context, controllers: ContextControllers = {}) {
-      const { isActive, activate, restore } = controllers;
-      const wasActive = this.isActive();
-      await libRestore?.();
-      libIsActive = isActive;
-      libActivate = activate;
-      libRestore = restore;
+    async adopt(context: Context, controllers: ContextHelpers = {}) {
+      const beActive = this.isActive();
+      await contextHelpers.restore?.();
+      contextHelpers = controllers;
+      if (beActive) await contextHelpers.activate?.();
       fetchMock.adopt(context);
-      if (wasActive) await activate?.();
     },
   },
 );

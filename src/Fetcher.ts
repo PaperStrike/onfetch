@@ -102,11 +102,11 @@ export default class Fetcher {
    */
   readonly adopt = (context: Context): void => {
     if (this.context === context) return;
-    const wasActive = this.isActive();
+    const beActive = this.isActive();
     this.restore();
     this.context = context;
     this.original = context.fetch;
-    if (wasActive) this.activate();
+    if (beActive) this.activate();
   };
 
   readonly remove = (rule: InterceptRule): boolean => {
