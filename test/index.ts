@@ -3,11 +3,6 @@ import expect from 'expect';
 import * as nodeFetch from 'node-fetch';
 import 'error-cause/auto';
 
-// Here until https://github.com/node-fetch/node-fetch/pull/1169
-declare class RealNodeResponse extends nodeFetch.Response {
-  static redirect(url: string | URL, status?: number): Response;
-}
-
 // Polyfills for Node environment.
 if (typeof fetch === 'undefined' && typeof nodeFetch !== 'undefined') {
   const { Request, Headers, Response } = nodeFetch;
@@ -30,8 +25,8 @@ if (typeof fetch === 'undefined' && typeof nodeFetch !== 'undefined') {
         return new Target(input, init);
       },
     }),
-    Response: new Proxy(Response as typeof RealNodeResponse, {
-      get(Target: typeof RealNodeResponse, key: keyof typeof Target) {
+    Response: new Proxy(Response, {
+      get(Target, key: keyof typeof Response) {
         if (key !== 'redirect') return Target[key];
         return new Proxy(Target[key], {
           apply(target, thisArg, [url, status]: Parameters<typeof Target['redirect']>) {
