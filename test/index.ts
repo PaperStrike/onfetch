@@ -1,15 +1,21 @@
 import fixtureWrap from 'playwright-fixtures';
 import expect from 'expect';
+
 import * as nodeFetch from 'node-fetch';
 import 'error-cause/auto';
 
 // Polyfills for Node environment.
 if (typeof fetch === 'undefined' && typeof nodeFetch !== 'undefined') {
-  const { Request, Headers, Response } = nodeFetch;
+  const {
+    default: fetch,
+    Request,
+    Headers,
+    Response,
+  } = nodeFetch;
   const baseURL = 'https://localhost/';
   Object.assign(globalThis, {
-    fetch: new Proxy(nodeFetch.default, {
-      apply(target, thisArg, [input, init]: Parameters<typeof nodeFetch.default>) {
+    fetch: new Proxy(fetch, {
+      apply(target, thisArg, [input, init]: Parameters<typeof fetch>) {
         if (typeof input === 'string') {
           return target(new URL(input, baseURL).href, init);
         }
