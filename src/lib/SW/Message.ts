@@ -34,4 +34,21 @@ export abstract class MessageProcessor {
       this.onStatusMessage(event as MessageEvent<StatusMessage>);
     }
   }
+
+  abstract isActive(): boolean;
+  abstract switchToStatus(status: 'on' | 'off'): Promise<void>;
+
+  /**
+   * Start receiving messages.
+   */
+  async activate() {
+    return this.switchToStatus('on');
+  }
+
+  /**
+   * Stop receiving messages.
+   */
+  async restore() {
+    return this.switchToStatus('off');
+  }
 }

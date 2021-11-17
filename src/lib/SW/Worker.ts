@@ -70,9 +70,11 @@ export default class Worker extends MessageProcessor {
     if (!(target instanceof MessagePort) || !this.fulfillListMap.has(target)) {
       throw new Error('Request came from unrecognized source');
     }
-    const response = await this.scope.fetch(request.url, request).catch((err: Error) => err);
+    const responseOrError = await this.scope.fetch(request.url, request)
+      .then((response) => toCloneable(response))
+      .catch((err: Error) => err);
     target.postMessage({
-      response: response instanceof Error ? response : await toCloneable(response),
+      response: responseOrError,
       index,
     });
   }
@@ -126,7 +128,7 @@ export default class Worker extends MessageProcessor {
     }
   }
 
-  hasActive() {
+  isActive() {
     return this.fulfillListMap.size > 0;
   }
 
@@ -137,19 +139,5 @@ export default class Worker extends MessageProcessor {
         port.postMessage({ status });
       }));
     await Promise.all(switchPromiseList);
-  }
-
-  /**
-   * Start capturing requests and receiving messages.
-   */
-  async activate() {
-    return this.switchToStatus('on');
-  }
-
-  /**
-   * Stop capturing requests and receiving messages.
-   */
-  async restore() {
-    return this.switchToStatus('off');
   }
 }

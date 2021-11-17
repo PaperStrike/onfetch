@@ -68,9 +68,11 @@ export default class Channel extends MessageProcessor {
     if (!port) {
       throw new Error('Service worker not ready yet');
     }
-    const response = await this.fetch(request.url, request).catch((err: Error) => err);
+    const responseOrError = await this.fetch(request.url, request)
+      .then((response) => toCloneable(response))
+      .catch((err: Error) => err);
     port.postMessage({
-      response: response instanceof Error ? response : await toCloneable(response),
+      response: responseOrError,
       index,
     });
   }
@@ -126,19 +128,5 @@ export default class Channel extends MessageProcessor {
       this.statusResolve = resolve;
       port.postMessage({ status });
     });
-  }
-
-  /**
-   * Start receiving worker messages.
-   */
-  activate() {
-    return this.switchToStatus('on');
-  }
-
-  /**
-   * Stop receiving worker messages.
-   */
-  restore() {
-    return this.switchToStatus('off');
   }
 }
