@@ -175,7 +175,7 @@ export default class InterceptRule {
         .catch((err: unknown) => {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore until https://github.com/microsoft/TypeScript/issues/45167
-          throw new Error('The reply callback threw an error', {
+          throw new Error(`The reply callback threw an error: ${String(err)}`, {
             cause: err,
           });
         })
