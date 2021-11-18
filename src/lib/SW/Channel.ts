@@ -39,7 +39,7 @@ export default class Channel extends MessageProcessor {
   }
 
   async preparePort(workerContainer: ServiceWorkerContainer) {
-    const controller = (await workerContainer.ready).active;
+    const controller = workerContainer.controller || (await workerContainer.ready).active;
     if (!controller) {
       return new Promise<MessagePort>((resolve) => {
         workerContainer.addEventListener('controllerchange', () => {
