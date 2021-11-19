@@ -13,43 +13,54 @@ import {
  * - For messaged requests, send to the receiver. <- Intercept here.
  */
 export default class Channel extends MessageProcessor {
-  port?: MessagePort;
+  port!: Promise<MessagePort>;
 
-  fulfillList?: FulfillList;
+  fulfillList!: FulfillList;
 
   private beActive = false;
 
   constructor(workerContainer: ServiceWorkerContainer) {
     super();
 
-    this.registerController(workerContainer);
-    workerContainer.addEventListener('controllerchange', () => {
-      this.registerController(workerContainer);
-    });
+    this.registerContainer(workerContainer);
   }
 
-  private registerController(workerContainer: ServiceWorkerContainer) {
-    const { controller } = workerContainer;
-    if (!controller) return;
+  private registerContainer(workerContainer: ServiceWorkerContainer) {
+    this.fulfillList = [];
+    this.port = this.preparePort(workerContainer)
+      .finally(() => {
+        workerContainer.addEventListener('controllerchange', () => {
+          this.registerContainer(workerContainer);
+          this.port
+            .then(() => (this.beActive ? this.activate() : this.restore()))
+            .catch(() => {});
+        }, { once: true });
+      });
+  }
+
+  async preparePort(workerContainer: ServiceWorkerContainer) {
+    const controller = workerContainer.controller || (await workerContainer.ready).active;
+    if (!controller) {
+      return new Promise<MessagePort>((resolve) => {
+        workerContainer.addEventListener('controllerchange', () => {
+          resolve(this.preparePort(workerContainer));
+        }, { once: true });
+      });
+    }
 
     const { port1, port2 } = new MessageChannel();
     port1.onmessage = this.onMessage.bind(this);
-
-    this.port = port1;
-    this.fulfillList = [];
     controller.postMessage({ onfetch: true }, [port2]);
 
-    if (this.beActive) port1.postMessage({ status: 'on' });
+    return port1;
   }
 
   /**
    * For received requests, message to the service worker.
    */
   fetch: typeof fetch = async (...args) => {
-    const { port, fulfillList } = this;
-    if (!port || !fulfillList) {
-      throw new Error('Service worker not ready yet');
-    }
+    const { fulfillList } = this;
+    const port = await this.port;
     port.postMessage({
       request: await toCloneable(new Request(...args)),
       index: fulfillList.length,
@@ -64,10 +75,7 @@ export default class Channel extends MessageProcessor {
    */
   async onRequestMessage(event: MessageEvent<RequestMessage>) {
     const { data: { request, index } } = event;
-    const { port } = this;
-    if (!port) {
-      throw new Error('Service worker not ready yet');
-    }
+    const port = await this.port;
     const responseOrError = await this.fetch(request.url, request)
       .then((response) => toCloneable(response))
       .catch((err: Error) => err);
@@ -101,12 +109,9 @@ export default class Channel extends MessageProcessor {
   // Resolve when the service worker responds.
   statusResolve: (() => void) | null = null;
 
-  onStatusMessage(event: MessageEvent<StatusMessage>) {
+  async onStatusMessage(event: MessageEvent<StatusMessage>) {
     const { data: { status } } = event;
-    const { port } = this;
-    if (!port) {
-      throw new Error('Service worker not ready yet');
-    }
+    const port = await this.port;
     this.beActive = status === 'on';
     const { statusResolve } = this;
     if (statusResolve) {
@@ -122,8 +127,7 @@ export default class Channel extends MessageProcessor {
   }
 
   async switchToStatus(status: 'on' | 'off') {
-    const { port } = this;
-    if (!port) return;
+    const port = await this.port;
     await new Promise<void>((resolve) => {
       this.statusResolve = resolve;
       port.postMessage({ status });
