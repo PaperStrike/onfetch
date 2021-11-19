@@ -4,6 +4,9 @@
   "spec": [
     "test/**/*.test.*"
   ],
+  "ignore": [
+    "test/**/browser/**/*"
+  ],
   "watch-files": [
     "src"
   ]
