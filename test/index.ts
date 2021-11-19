@@ -1,51 +1,17 @@
 import fixtureWrap from 'playwright-fixtures';
 import expect from 'expect';
 
-import * as nodeFetch from 'node-fetch';
-import 'error-cause/auto';
+import * as nodeSetup from './node/setup';
 
-// Polyfills for Node environment.
-if (typeof fetch === 'undefined' && typeof nodeFetch !== 'undefined') {
-  const {
-    default: fetch,
-    Request,
-    Headers,
-    Response,
-  } = nodeFetch;
-  const baseURL = 'https://localhost/';
-  Object.assign(globalThis, {
-    fetch: new Proxy(fetch, {
-      apply(target, thisArg, [input, init]: Parameters<typeof fetch>) {
-        if (typeof input === 'string') {
-          return target(new URL(input, baseURL).href, init);
-        }
-        return target(input, init);
-      },
-    }),
-    Headers,
-    Request: new Proxy(Request, {
-      construct(Target, [input, init]: ConstructorParameters<typeof Request>) {
-        if (typeof input === 'string') {
-          return new Target(new URL(input, baseURL).href, init);
-        }
-        return new Target(input, init);
-      },
-    }),
-    Response: new Proxy(Response, {
-      get(Target, key: keyof typeof Response) {
-        if (key !== 'redirect') return Target[key];
-        return new Proxy(Target[key], {
-          apply(target, thisArg, [url, status]: Parameters<typeof Target['redirect']>) {
-            return target.apply(thisArg, [new URL(url, baseURL).href, status]);
-          },
-        });
-      },
-    }),
-  });
-}
+const serverURL = typeof nodeSetup !== 'undefined'
+  ? nodeSetup.serverURL
+  : globalThis.location.href;
+
+const assetURL = new URL('/test/fixture/', serverURL).href;
+const resolveAsset = (path: string) => new URL(`${path}.txt`, assetURL).href;
 
 // Playwright like test runner.
-const test = fixtureWrap(
+const wrappedTest = fixtureWrap(
   Object.assign(it, {
     describe,
     beforeAll: before,
@@ -53,4 +19,14 @@ const test = fixtureWrap(
   }),
 );
 
-export { test, expect };
+const assetNames = ['status'] as const;
+
+type Assets = Record<typeof assetNames[number], string>;
+
+const baseTest = wrappedTest.extend<{ assets: Assets }>({
+  assets: Object.fromEntries(
+    assetNames.map((name) => [name, resolveAsset(name)]),
+  ) as Assets,
+});
+
+export { baseTest as test, expect };
