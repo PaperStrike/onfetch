@@ -11,7 +11,7 @@ const swSupported = typeof window !== 'undefined' && !!window?.navigator?.servic
 const isInNode = typeof process !== 'undefined' && process?.release?.name === 'node';
 
 // Lib clients. Initialize when needed.
-let channel: Channel;
+const channelMap = new Map<ServiceWorkerContainer, Channel>();
 let mswInterceptors: MSWInterceptors;
 
 // Context helpers.
@@ -29,7 +29,7 @@ const fetchMock = mockFetchOn(globalThis);
 fetchMock.activate();
 
 const onfetch: OnfetchCall & Omit<Onfetch, keyof ContextHelpers | 'adopt'> & {
-  useServiceWorker(): Promise<void>;
+  useServiceWorker(serviceWorkerContainer?: ServiceWorkerContainer): Promise<void>;
   useMSWInterceptors(): Promise<void>;
   useAutoAdvanced(): Promise<void>;
   useDefault(): Promise<void>;
@@ -42,14 +42,19 @@ const onfetch: OnfetchCall & Omit<Onfetch, keyof ContextHelpers | 'adopt'> & {
   fetchMock.bind(fetchMock),
   fetchMock,
   {
-    async useServiceWorker() {
-      if (!channel) {
-        if (!swSupported) {
-          throw new Error('Environment not compatible with service worker mode');
-        }
-        const Channel = (await import('./lib/SW/Channel')).default;
-        channel = new Channel(window.navigator.serviceWorker);
+    async useServiceWorker(serviceWorkerContainer = navigator.serviceWorker) {
+      if (!swSupported) {
+        throw new Error('Environment not compatible with service worker mode');
       }
+      const channel = await (async () => {
+        const existing = channelMap.get(serviceWorkerContainer);
+        if (existing) return existing;
+
+        const Channel = (await import('./lib/SW/Channel')).default;
+        const newChannel = new Channel(serviceWorkerContainer);
+        channelMap.set(serviceWorkerContainer, newChannel);
+        return newChannel;
+      })();
 
       await this.adopt(channel, channel);
 

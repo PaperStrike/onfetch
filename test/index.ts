@@ -8,7 +8,7 @@ const serverURL = typeof nodeSetup !== 'undefined'
   : globalThis.location.href;
 
 const assetURL = new URL('/test/fixture/', serverURL).href;
-const resolveAsset = (path: string) => new URL(`${path}.txt`, assetURL).href;
+const resolveAsset = (path: string) => new URL(path, assetURL).href;
 
 // Playwright like test runner.
 const wrappedTest = fixtureWrap(
@@ -19,14 +19,12 @@ const wrappedTest = fixtureWrap(
   }),
 );
 
-const assetNames = ['status'] as const;
-
-type Assets = Record<typeof assetNames[number], string>;
-
-const baseTest = wrappedTest.extend<{ assets: Assets }>({
-  assets: Object.fromEntries(
-    assetNames.map((name) => [name, resolveAsset(name)]),
-  ) as Assets,
+const baseTest = wrappedTest.extend({
+  assets: {
+    status: resolveAsset('status.txt'),
+    blankDoc: resolveAsset('blank.html'),
+    sw: new URL('./sw-out.js', serverURL).href,
+  },
 });
 
 export { baseTest as test, expect };

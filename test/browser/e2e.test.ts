@@ -1,12 +1,27 @@
-import { test, expect } from '..';
+import { iframeTest, registerServiceWorker } from './helpers';
+import { expect } from '..';
 import onfetch from '../../src';
 
-/**
- * This test suite is broken as unregister() take effects only after a reload.
- * TODO Fix this. Some possible solutions:
- *  1. Unregister immediately when it supports. See [A way to immediately unregister a service worker · Issue #614 · w3c/ServiceWorker](https://github.com/w3c/ServiceWorker/issues/614).
- *  2. Investigate using an iframe.
- */
+const test = iframeTest.extend({
+  // Switch onfetch context for e2e iframe tests.
+  iframe: async ({ iframe }, use) => {
+    const { contentWindow } = iframe;
+
+    // Use frame service worker.
+    const wasActive = onfetch.isActive();
+    await onfetch.restore();
+    await onfetch.useServiceWorker(contentWindow.navigator.serviceWorker);
+
+    await use(iframe);
+
+    // Use original.
+    await onfetch.useServiceWorker();
+    if (wasActive) {
+      await onfetch.activate();
+    }
+  },
+});
+
 test.describe('browser e2e', () => {
   test.beforeAll(async () => {
     await onfetch.useServiceWorker();
@@ -15,23 +30,17 @@ test.describe('browser e2e', () => {
     await onfetch.useDefault();
   });
 
-  test('await service worker registration', async () => {
-    // Get the current service worker script URL.
-    const registration = await navigator.serviceWorker.getRegistration();
-    const scriptURL = registration?.active?.scriptURL;
-    if (!scriptURL) {
-      throw new Error('failed to parse service worker script URL');
-    }
-
-    // Call activate after unregistered, and then register.
-    await onfetch.restore();
-    await registration.unregister();
+  test('await service worker registration', async ({ assets, iframe: { contentWindow } }) => {
+    // Call activate before register.
     const activation = onfetch.activate();
-    await navigator.serviceWorker.register(scriptURL);
+    await registerServiceWorker(contentWindow, assets.sw);
 
     // Check activation.
     await expect(activation).resolves.not.toThrow();
-    onfetch('/mock').reply('mocked');
-    await expect(fetch('/mock').then((res) => res.text())).resolves.toBe('mocked');
+
+    // Check mock functionality.
+    onfetch(assets.status).reply('mocked');
+    const response = await contentWindow.fetch(assets.status);
+    await expect(response.text()).resolves.toBe('mocked');
   });
 });

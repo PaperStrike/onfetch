@@ -22,24 +22,12 @@ export default class Channel extends MessageProcessor {
   constructor(workerContainer: ServiceWorkerContainer) {
     super();
 
-    this.registerContainer(workerContainer);
-  }
-
-  private registerContainer(workerContainer: ServiceWorkerContainer) {
     this.fulfillList = [];
-    this.port = this.preparePort(workerContainer)
-      .finally(() => {
-        workerContainer.addEventListener('controllerchange', () => {
-          this.registerContainer(workerContainer);
-          this.port
-            .then(() => (this.beActive ? this.activate() : this.restore()))
-            .catch(() => {});
-        }, { once: true });
-      });
+    this.port = this.preparePort(workerContainer);
   }
 
   async preparePort(workerContainer: ServiceWorkerContainer) {
-    const controller = workerContainer.controller || (await workerContainer.ready).active;
+    const { controller } = workerContainer;
     if (!controller) {
       return new Promise<MessagePort>((resolve) => {
         workerContainer.addEventListener('controllerchange', () => {
