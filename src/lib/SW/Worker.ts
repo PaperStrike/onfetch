@@ -29,7 +29,7 @@ export default class Worker extends MessageProcessor {
 
     // For clients' port registration.
     scope.addEventListener('message', (event) => {
-      if (!event.data || !('onfetch' in event.data)) return;
+      if (typeof event.data !== 'object' || !('onfetch' in event.data)) return;
 
       const { source } = event;
       if (!(source instanceof Client)) return;
@@ -85,7 +85,7 @@ export default class Worker extends MessageProcessor {
   onResponseMessage(event: MessageEvent<ResponseMessage>) {
     const { target, data: { response, index } } = event;
     if (!(target instanceof MessagePort)) {
-      throw new Error('Request came from unknown source');
+      throw new Error('Response came from unknown source');
     }
     const fulfillList = this.fulfillListMap.get(target);
     if (!fulfillList) {
@@ -112,7 +112,7 @@ export default class Worker extends MessageProcessor {
   onStatusMessage(event: MessageEvent<StatusMessage>) {
     const { target, data: { status } } = event;
     if (!(target instanceof MessagePort)) {
-      throw new Error('Request came from unknown source');
+      throw new Error('Status came from unknown source');
     }
     if (status === 'on') {
       this.fulfillListMap.set(target, []);
