@@ -23,6 +23,7 @@ const baseTest = wrappedTest.extend({
   assets: {
     status: resolveAsset('status.txt'),
     blankDoc: resolveAsset('blank.html'),
+    noopSW: resolveAsset('noop-service-worker.js'),
     sw: new URL('./sw-out.js', serverURL).href,
   },
 });

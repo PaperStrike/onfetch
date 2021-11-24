@@ -17,13 +17,23 @@ export default class Channel extends MessageProcessor {
 
   fulfillList!: FulfillList;
 
-  private beActive = false;
+  private beActive!: boolean;
 
   constructor(workerContainer: ServiceWorkerContainer) {
     super();
 
+    this.registerContainer(workerContainer);
+  }
+
+  private registerContainer(workerContainer: ServiceWorkerContainer) {
+    this.beActive = false;
     this.fulfillList = [];
-    this.port = this.preparePort(workerContainer);
+    this.port = this.preparePort(workerContainer)
+      .finally(() => {
+        workerContainer.addEventListener('controllerchange', () => {
+          this.registerContainer(workerContainer);
+        }, { once: true });
+      });
   }
 
   async preparePort(workerContainer: ServiceWorkerContainer) {

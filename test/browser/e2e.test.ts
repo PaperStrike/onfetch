@@ -43,4 +43,22 @@ test.describe('browser e2e', () => {
     const response = await contentWindow.fetch(assets.status);
     await expect(response.text()).resolves.toBe('mocked');
   });
+
+  test('follow service worker controller changes', async ({ assets, iframe: { contentWindow } }) => {
+    await registerServiceWorker(contentWindow, assets.sw);
+    await onfetch.activate();
+
+    // Change controller.
+    await registerServiceWorker(contentWindow, assets.noopSW);
+    await registerServiceWorker(contentWindow, assets.sw);
+
+    // Check inactivated and re-activate.
+    expect(onfetch.isActive()).toBe(false);
+    await onfetch.activate();
+
+    // Check mock functionality.
+    onfetch(assets.status).reply('mocked');
+    const response = await contentWindow.fetch(assets.status);
+    await expect(response.text()).resolves.toBe('mocked');
+  });
 });
