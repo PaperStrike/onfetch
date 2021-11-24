@@ -17,7 +17,7 @@ export default class Channel extends MessageProcessor {
 
   fulfillList!: FulfillList;
 
-  private beActive = false;
+  private beActive!: boolean;
 
   constructor(public workerContainer: ServiceWorkerContainer) {
     super();
@@ -26,15 +26,14 @@ export default class Channel extends MessageProcessor {
   }
 
   private registerContainer() {
+    this.beActive = false;
     this.fulfillList = [];
-    this.port = (async () => {
-      const port = await this.preparePort();
-      this.workerContainer.addEventListener('controllerchange', () => {
-        this.registerContainer();
-      }, { once: true });
-      if (this.beActive) await this.switchToStatus('on', port);
-      return port;
-    })();
+    this.port = this.preparePort()
+      .finally(() => {
+        this.workerContainer.addEventListener('controllerchange', () => {
+          this.registerContainer();
+        }, { once: true });
+      });
   }
 
   async preparePort() {

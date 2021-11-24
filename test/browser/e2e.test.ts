@@ -52,8 +52,9 @@ test.describe('browser e2e', () => {
     await registerServiceWorker(contentWindow, assets.noopSW);
     await registerServiceWorker(contentWindow, assets.sw);
 
-    // For some reason webkit needs this.
-    await new Promise((resolve) => { setTimeout(resolve); });
+    // Check inactivated and re-activate.
+    expect(onfetch.isActive()).toBe(false);
+    await onfetch.activate();
 
     // Check mock functionality.
     onfetch(assets.status).reply('mocked');
