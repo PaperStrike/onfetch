@@ -19,29 +19,29 @@ export default class Channel extends MessageProcessor {
 
   private beActive!: boolean;
 
-  constructor(public workerContainer: ServiceWorkerContainer) {
+  constructor(workerContainer: ServiceWorkerContainer) {
     super();
 
-    this.registerContainer();
+    this.registerContainer(workerContainer);
   }
 
-  private registerContainer() {
+  private registerContainer(workerContainer: ServiceWorkerContainer) {
     this.beActive = false;
     this.fulfillList = [];
-    this.port = this.preparePort()
+    this.port = this.preparePort(workerContainer)
       .finally(() => {
-        this.workerContainer.addEventListener('controllerchange', () => {
-          this.registerContainer();
+        workerContainer.addEventListener('controllerchange', () => {
+          this.registerContainer(workerContainer);
         }, { once: true });
       });
   }
 
-  async preparePort() {
-    const { controller } = this.workerContainer;
+  async preparePort(workerContainer: ServiceWorkerContainer) {
+    const { controller } = workerContainer;
     if (!controller) {
       return new Promise<MessagePort>((resolve) => {
-        this.workerContainer.addEventListener('controllerchange', () => {
-          resolve(this.preparePort());
+        workerContainer.addEventListener('controllerchange', () => {
+          resolve(this.preparePort(workerContainer));
         }, { once: true });
       });
     }
