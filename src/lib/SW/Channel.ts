@@ -47,7 +47,7 @@ export default class Channel extends MessageProcessor {
     }
 
     const { port1, port2 } = new MessageChannel();
-    port1.onmessage = this.onMessage.bind(this);
+    port1.onmessage = this.onMessage;
     controller.postMessage({ onfetch: true }, [port2]);
 
     return port1;

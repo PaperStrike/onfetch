@@ -37,7 +37,7 @@ export default class Worker extends MessageProcessor {
 
       const [port] = event.ports;
       this.portMap.set(source.id, port);
-      port.onmessage = this.onMessage.bind(this);
+      port.onmessage = this.onMessage;
     });
   }
 
