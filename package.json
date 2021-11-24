@@ -1,6 +1,6 @@
 {
   "name": "onfetch",
-  "version": "0.7.4",
+  "version": "0.7.5",
   "description": "Mock fetch() with native Request / Response API. Works with globalThis, service worker, @mswjs/interceptors, and custom contexts",
   "types": "./build/index.d.ts",
   "main": "./build/index.js",
