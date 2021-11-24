@@ -72,14 +72,12 @@ export default class Channel extends MessageProcessor {
    * For messaged requests, send to the receiver.
    */
   async onRequestMessage(event: MessageEvent<RequestMessage>) {
-    const { target, data: { request, index } } = event;
-    if (!(target instanceof MessagePort)) {
-      throw new Error('Request came from unknown source');
-    }
+    const { data: { request, index } } = event;
+    const port = await this.port;
     const responseOrError = await this.fetch(request.url, request)
       .then((response) => toCloneable(response))
       .catch((err: Error) => err);
-    target.postMessage({
+    port.postMessage({
       response: responseOrError,
       index,
     });
@@ -110,17 +108,15 @@ export default class Channel extends MessageProcessor {
   statusResolve: (() => void) | null = null;
 
   async onStatusMessage(event: MessageEvent<StatusMessage>) {
-    const { target, data: { status } } = event;
-    if (!(target instanceof MessagePort)) {
-      throw new Error('Status came from unknown source');
-    }
+    const { data: { status } } = event;
+    const port = await this.port;
     this.beActive = status === 'on';
     const { statusResolve } = this;
     if (statusResolve) {
       statusResolve();
       this.statusResolve = null;
     } else {
-      target.postMessage({ status });
+      port.postMessage({ status });
     }
   }
 
@@ -128,8 +124,8 @@ export default class Channel extends MessageProcessor {
     return this.beActive;
   }
 
-  async switchToStatus(status: 'on' | 'off', targetPort?: MessagePort) {
-    const port = targetPort || await this.port;
+  async switchToStatus(status: 'on' | 'off') {
+    const port = await this.port;
     await new Promise<void>((resolve) => {
       this.statusResolve = resolve;
       port.postMessage({ status });
