@@ -19,19 +19,30 @@ export default class Channel extends MessageProcessor {
 
   private beActive = false;
 
-  constructor(workerContainer: ServiceWorkerContainer) {
+  constructor(public workerContainer: ServiceWorkerContainer) {
     super();
 
-    this.fulfillList = [];
-    this.port = this.preparePort(workerContainer);
+    this.registerContainer();
   }
 
-  async preparePort(workerContainer: ServiceWorkerContainer) {
-    const { controller } = workerContainer;
+  private registerContainer() {
+    this.fulfillList = [];
+    this.port = (async () => {
+      const port = await this.preparePort();
+      this.workerContainer.addEventListener('controllerchange', () => {
+        this.registerContainer();
+      }, { once: true });
+      if (this.beActive) await this.switchToStatus('on', port);
+      return port;
+    })();
+  }
+
+  async preparePort() {
+    const { controller } = this.workerContainer;
     if (!controller) {
       return new Promise<MessagePort>((resolve) => {
-        workerContainer.addEventListener('controllerchange', () => {
-          resolve(this.preparePort(workerContainer));
+        this.workerContainer.addEventListener('controllerchange', () => {
+          resolve(this.preparePort());
         }, { once: true });
       });
     }
@@ -62,12 +73,14 @@ export default class Channel extends MessageProcessor {
    * For messaged requests, send to the receiver.
    */
   async onRequestMessage(event: MessageEvent<RequestMessage>) {
-    const { data: { request, index } } = event;
-    const port = await this.port;
+    const { target, data: { request, index } } = event;
+    if (!(target instanceof MessagePort)) {
+      throw new Error('Request came from unknown source');
+    }
     const responseOrError = await this.fetch(request.url, request)
       .then((response) => toCloneable(response))
       .catch((err: Error) => err);
-    port.postMessage({
+    target.postMessage({
       response: responseOrError,
       index,
     });
@@ -98,15 +111,17 @@ export default class Channel extends MessageProcessor {
   statusResolve: (() => void) | null = null;
 
   async onStatusMessage(event: MessageEvent<StatusMessage>) {
-    const { data: { status } } = event;
-    const port = await this.port;
+    const { target, data: { status } } = event;
+    if (!(target instanceof MessagePort)) {
+      throw new Error('Status came from unknown source');
+    }
     this.beActive = status === 'on';
     const { statusResolve } = this;
     if (statusResolve) {
       statusResolve();
       this.statusResolve = null;
     } else {
-      port.postMessage({ status });
+      target.postMessage({ status });
     }
   }
 
@@ -114,8 +129,8 @@ export default class Channel extends MessageProcessor {
     return this.beActive;
   }
 
-  async switchToStatus(status: 'on' | 'off') {
-    const port = await this.port;
+  async switchToStatus(status: 'on' | 'off', targetPort?: MessagePort) {
+    const port = targetPort || await this.port;
     await new Promise<void>((resolve) => {
       this.statusResolve = resolve;
       port.postMessage({ status });
