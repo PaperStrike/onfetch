@@ -129,35 +129,39 @@ fetch('', {
 });
 ```
 
-#### RegExp
+#### Objects with `test` method
+
+Other than using strings, you can also pass any object that has a `test` method as the first arg to test the request's URL.
+
+The `test` method will receive the _full URL string_ and should return a boolean indicating the match result.
+
+##### RegExp
 [mdn-regexp-api]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp
 
-Other than using strings, you can also pass a [`RegExp`][mdn-regexp-api] as the first arg to test the request's URL.
+An example that uses a [`RegExp`][mdn-regexp-api]:
 
 ```js
 // Match URLs that ends with '.foo'.
 onfetch(/\.foo$/).reply('bar');
 ```
 
-Put it in consideration that [`RegExp`][mdn-regexp-api] here test against the _entire URL string_, which means, if this `onfetch` rule needn't care about the query string nor the hash, write it like:
+Because it tests the entire URL string, if this `onfetch` rule doesn't need to care about the query string or the hash, write it like:
 
 ```js
-// Use regexp that
+// Use regex that
 // allows any trailing query string and hash.
 onfetch(/^[^?#]*\.foo([?#]|$)/).reply('bar');
 ```
 
-#### URLPattern
+##### URLPattern
 [mdn-url-pattern-api]: https://developer.mozilla.org/en-US/docs/Web/API/URLPattern
 
-You can also use the brand new [`URLPattern`][mdn-url-pattern-api] in the first arg.
+Another example that uses a [`URLPattern`][mdn-url-pattern-api]:
 
 ```js
 const pattern = new URLPattern('http{s}?://*.example.com/books/:id');
 onfetch(pattern);
 ```
-
-In fact, the first arg accepts any object that has a `test` method that takes the URL string and returns a boolean value indicating the match result.
 
 #### Request
 

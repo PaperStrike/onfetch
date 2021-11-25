@@ -129,34 +129,38 @@ fetch('', {
 });
 ```
 
-#### RegExp
+#### 具有 `test` 方法的对象
+
+除了使用字符串，你也可以使用任何具有 `test` 方法的对象作为第一个参数来匹配请求 URL。
+
+该 `test` 方法将收到 **完整的 URL 字符串** 并应返回一个布尔值作为匹配结果。
+
+##### RegExp
 [mdn-regexp-api]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp
 
-除了使用字符串，你也可以使用正则表达式 [`RegExp`][mdn-regexp-api] 作为第一个参数来规定匹配的请求 URL。
+一个使用正则表达式 [`RegExp`][mdn-regexp-api] 的例子：
 
 ```js
 // 匹配以 '.foo' 结尾的 URL
 onfetch(/\.foo$/).reply('bar');
 ```
 
-注意此处正则 [`RegExp`][mdn-regexp-api] 将会与 **完整 URL** 相匹配，或者说，若该规则不应关心查询参数和位置标识，则写成这样：
+鉴于其与完整 URL 字符串相匹配，若该规则不应关心查询参数和位置标识，则写成这样：
 
 ```js
 // 使用接受任意查询参数和位置标识的正则
 onfetch(/^[^?#]*\.foo([?#]|$)/).reply('bar');
 ```
 
-#### URLPattern
+##### URLPattern
 [mdn-url-pattern-api]: https://developer.mozilla.org/en-US/docs/Web/API/URLPattern
 
-你也可以使用全新的 [`URLPattern`][mdn-url-pattern-api] 对象作为第一个参数。
+另一个使用 [`URLPattern`][mdn-url-pattern-api] 的例子：
 
 ```js
 const pattern = new URLPattern('http{s}?://*.example.com/books/:id');
 onfetch(pattern);
 ```
-
-实际上，第一个参数只要求给定的对象具有这样一个 `test` 方法，接收 URL 字符串返回匹配结果布尔值。
 
 #### Request
 
