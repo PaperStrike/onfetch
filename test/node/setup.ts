@@ -39,6 +39,18 @@ Object.assign(globalThis, {
   }),
 });
 
+// Bypass node-fetch .data warning
+// @see https://github.com/node-fetch/node-fetch/issues/1549
+{
+  const proto = Object.getPrototypeOf(Request.prototype) as object;
+  const descriptors = Object.getOwnPropertyDescriptors(proto);
+  Reflect.deleteProperty(descriptors, 'data');
+  Object.setPrototypeOf(
+    Request.prototype,
+    Object.create(Object.getPrototypeOf(proto) as object, descriptors) as object,
+  );
+}
+
 export const server = http.createServer(
   sirv(),
 );
