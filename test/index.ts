@@ -1,5 +1,5 @@
 import fixtureWrap from 'playwright-fixtures';
-import expect from 'expect';
+import { expect } from 'expect';
 
 import * as nodeSetup from './node/setup';
 
