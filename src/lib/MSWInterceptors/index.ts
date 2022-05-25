@@ -1,6 +1,7 @@
-import { createInterceptor, Resolver } from '@mswjs/interceptors';
-import { interceptClientRequest } from '@mswjs/interceptors/lib/interceptors/ClientRequest';
-import { interceptXMLHttpRequest } from '@mswjs/interceptors/lib/interceptors/XMLHttpRequest';
+import { ClientRequestInterceptor } from '@mswjs/interceptors/lib/interceptors/ClientRequest';
+import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/lib/interceptors/XMLHttpRequest';
+import { BatchInterceptor } from '@mswjs/interceptors/lib/BatchInterceptor';
+import { HttpRequestEventMap } from '@mswjs/interceptors';
 
 export default class MSWInterceptors {
   private bypassNext = false;
@@ -16,24 +17,22 @@ export default class MSWInterceptors {
   /**
    * The resolver that parses the requests.
    */
-  resolver: Resolver = async (isomorphicRequest, ref) => {
+  resolver: HttpRequestEventMap['request'] = async (mswRequest) => {
     if (this.bypassNext) {
       this.bypassNext = false;
-      return undefined;
+      return;
     }
 
-    const request = ref instanceof Request
-      ? ref
-      : new Request(isomorphicRequest.url.href, {
-        ...isomorphicRequest,
-        // avoid the invalid '' body in GET/HEAD requests.
-        body: isomorphicRequest.body || null,
-      });
+    const request = new Request(mswRequest.url.href, {
+      ...mswRequest,
+      // avoid the invalid '' body in GET/HEAD requests.
+      body: mswRequest.body || null,
+    });
 
     const response = await this.fetch(request);
     const { status, statusText, headers } = response;
 
-    return {
+    mswRequest.respondWith({
       status,
       statusText,
       headers: [...headers]
@@ -46,19 +45,23 @@ export default class MSWInterceptors {
           return acc;
         }, {}),
       body: await response.text(),
-    };
+    });
   };
 
-  interceptor = createInterceptor({
-    modules: [interceptClientRequest, interceptXMLHttpRequest],
-    resolver: this.resolver,
+  interceptor = new BatchInterceptor({
+    name: 'onfetch',
+    interceptors: [new ClientRequestInterceptor(), new XMLHttpRequestInterceptor()],
   });
+
+  constructor() {
+    this.interceptor.on('request', this.resolver);
+  }
 
   activate() {
     this.interceptor.apply();
   }
 
   restore() {
-    this.interceptor.restore();
+    this.interceptor.dispose();
   }
 }
