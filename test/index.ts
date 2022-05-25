@@ -1,7 +1,7 @@
 import fixtureWrap from 'playwright-fixtures';
 import { expect } from 'expect';
 
-import * as nodeSetup from './node/setup';
+import * as nodeSetup from './node/setup.js';
 
 const serverURL = typeof nodeSetup !== 'undefined'
   ? nodeSetup.serverURL

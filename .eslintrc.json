@@ -19,5 +19,8 @@
   "plugins": [
     "@typescript-eslint"
   ],
-  "root": true
+  "root": true,
+  "rules": {
+    "import/extensions": ["error", "ignorePackages"]
+  }
 }

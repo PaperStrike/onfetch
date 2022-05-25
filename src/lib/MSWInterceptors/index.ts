@@ -1,6 +1,5 @@
-import { ClientRequestInterceptor } from '@mswjs/interceptors/lib/interceptors/ClientRequest';
-import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/lib/interceptors/XMLHttpRequest';
-import { BatchInterceptor } from '@mswjs/interceptors/lib/BatchInterceptor';
+import nodeInterceptors from '@mswjs/interceptors/lib/presets/node.js';
+import { BatchInterceptor } from '@mswjs/interceptors/lib/BatchInterceptor.js';
 import { HttpRequestEventMap } from '@mswjs/interceptors';
 
 export default class MSWInterceptors {
@@ -50,7 +49,7 @@ export default class MSWInterceptors {
 
   interceptor = new BatchInterceptor({
     name: 'onfetch',
-    interceptors: [new ClientRequestInterceptor(), new XMLHttpRequestInterceptor()],
+    interceptors: nodeInterceptors.default,
   });
 
   constructor() {

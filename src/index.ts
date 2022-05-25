@@ -1,9 +1,9 @@
-import mockFetchOn, { Context, Onfetch, OnfetchCall } from './core';
-import type MSWInterceptors from './lib/MSWInterceptors';
-import type Channel from './lib/SW/Channel';
+import mockFetchOn, { Context, Onfetch, OnfetchCall } from './core.js';
+import type MSWInterceptors from './lib/MSWInterceptors/index.js';
+import type Channel from './lib/SW/Channel.js';
 
 // Export core package
-export * from './core';
+export * from './core.js';
 export { mockFetchOn };
 
 // Lib compatibility checks.
@@ -50,7 +50,7 @@ const onfetch: OnfetchCall & Omit<Onfetch, keyof ContextHelpers | 'adopt'> & {
         const existing = channelMap.get(serviceWorkerContainer);
         if (existing) return existing;
 
-        const Channel = (await import('./lib/SW/Channel')).default;
+        const Channel = (await import('./lib/SW/Channel.js')).default;
         const newChannel = new Channel(serviceWorkerContainer);
         channelMap.set(serviceWorkerContainer, newChannel);
         return newChannel;
@@ -68,7 +68,7 @@ const onfetch: OnfetchCall & Omit<Onfetch, keyof ContextHelpers | 'adopt'> & {
         if (!isInNode) {
           throw new Error('Environment not compatible with msw interceptor mode');
         }
-        const MSWInterceptors = (await import('./lib/MSWInterceptors')).default;
+        const MSWInterceptors = (await import('./lib/MSWInterceptors/index.js')).default;
         mswInterceptors = new MSWInterceptors();
       }
 

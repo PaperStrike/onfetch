@@ -1,6 +1,6 @@
-import { iframeTest, registerServiceWorker } from './helpers';
-import { expect } from '..';
-import onfetch from '../../src';
+import { iframeTest, registerServiceWorker } from './helpers.js';
+import { expect } from '../index.js';
+import onfetch from '../../src/index.js';
 
 const test = iframeTest.extend({
   // Switch onfetch context for e2e iframe tests.

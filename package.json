@@ -6,9 +6,9 @@
   "main": "./build/index.js",
   "type": "module",
   "browser": {
-    "./src/lib/MSWInterceptors": false,
+    "./src/lib/MSWInterceptors/index.js": false,
     "./build/lib/MSWInterceptors": false,
-    "./test/node/setup": false,
+    "./test/node/setup.js": false,
     "jest-message-util": false,
     "jest-util": false
   },
@@ -37,7 +37,7 @@
     "lint": "eslint .",
     "prepare": "npm run build",
     "test-browser": "playwright-test \"test/**/*.test.*\" \"!test/**/node\" --sw src/sw.ts",
-    "test-node": "mocha --experimental-specifier-resolution=node --experimental-abortcontroller",
+    "test-node": "mocha --experimental-abortcontroller",
     "test": "npm run test-browser && npm run test-node"
   },
   "files": [
