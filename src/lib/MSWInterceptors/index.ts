@@ -1,6 +1,5 @@
 import nodeInterceptors from '@mswjs/interceptors/lib/presets/node.js';
-import { BatchInterceptor } from '@mswjs/interceptors/lib/BatchInterceptor.js';
-import { HttpRequestEventMap } from '@mswjs/interceptors';
+import { BatchInterceptor, HttpRequestEventMap } from '@mswjs/interceptors';
 
 export default class MSWInterceptors {
   private bypassNext = false;
