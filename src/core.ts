@@ -1,5 +1,4 @@
-import Fetcher from './Fetcher.js';
-import type { Context, Options } from './Fetcher.js';
+import Fetcher, { Context, Options } from './Fetcher.js';
 import InterceptRule, { passThrough } from './InterceptRule.js';
 
 export {
