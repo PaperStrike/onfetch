@@ -1,11 +1,11 @@
-import toCloneable from './toCloneable';
+import toCloneable from './toCloneable.js';
 import {
   FulfillList,
   StatusMessage,
   RequestMessage,
   ResponseMessage,
   MessageProcessor,
-} from './Message';
+} from './Message.js';
 
 /**
  * A fetch forwarder

@@ -1,5 +1,5 @@
-import { test, expect } from './index';
-import onfetch, { passThrough } from '../src';
+import { test, expect } from './index.js';
+import onfetch, { passThrough } from '../src/index.js';
 
 test.describe('e2e', () => {
   test.beforeAll(async () => {

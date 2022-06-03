@@ -1,4 +1,4 @@
-import { CloneableRequest, CloneableResponse } from './toCloneable';
+import { CloneableRequest, CloneableResponse } from './toCloneable.js';
 
 export interface StatusMessage {
   status: 'on' | 'off';

@@ -1,5 +1,5 @@
-import { test, expect } from '.';
-import InterceptRule, { Reply } from '../src/InterceptRule';
+import { test, expect } from './index.js';
+import InterceptRule, { Reply } from '../src/InterceptRule.js';
 
 test.describe('matching', () => {
   type MatchingFixture = {

@@ -1,5 +1,5 @@
-import { expect, test } from './index';
-import Fetcher from '../src/Fetcher';
+import { expect, test } from './index.js';
+import Fetcher from '../src/Fetcher.js';
 
 const fetcherTest = test.extend<{ fetcher: Fetcher }>({
   fetcher: async (_, use) => {

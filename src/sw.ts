@@ -1,4 +1,4 @@
-import Worker from './lib/SW/Worker';
+import Worker from './lib/SW/Worker.js';
 
 declare const globalThis: ServiceWorkerGlobalScope;
 
