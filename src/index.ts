@@ -87,8 +87,18 @@ const onfetch: OnfetchCall & Omit<Onfetch, keyof ContextHelpers | 'adopt'> & {
         if (isInNode) {
           throw new Error('Environment not compatible with wrightplay route mode');
         }
-        const WPRoute = (await import('./lib/WPRoute/index.js')).default;
-        wpRoute = new WPRoute();
+
+        // Intended try-catch for downstream bundlers like esbuild to know the package
+        // (wrightplay in this case) is not always required when bundling for browsers.
+        // Node.js libs don't need this as they can be safely fully excluded by using
+        // package browser field.
+        try {
+          const WPRoute = (await import('./lib/WPRoute/index.js')).default;
+          const wp = await import('wrightplay');
+          wpRoute = new WPRoute(wp);
+        } catch (e) {
+          throw new Error('Failed load wrightplay route lib. Have you installed "wrightplay"?', { cause: e as Error });
+        }
       }
 
       await this.adopt(wpRoute, wpRoute);
