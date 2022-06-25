@@ -1,6 +1,6 @@
 {
   "name": "onfetch",
-  "version": "0.7.5",
+  "version": "0.8.0",
   "description": "Mock fetch() with native Request / Response API. Works with globalThis, service worker, @mswjs/interceptors, and custom contexts",
   "types": "./build/index.d.ts",
   "main": "./build/index.js",
@@ -77,7 +77,7 @@
     "@types/serviceworker": "^0.0.47",
     "@typescript-eslint/eslint-plugin": "^5.29.0",
     "@typescript-eslint/parser": "^5.29.0",
-    "@typescript/lib-dom": "npm:@types/web@^0.0.67",
+    "@typescript/lib-dom": "npm:@types/web@^0.0.68",
     "error-cause": "^1.0.4",
     "eslint": "^8.18.0",
     "eslint-config-airbnb-typescript": "^17.0.0",
