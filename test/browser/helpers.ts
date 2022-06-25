@@ -1,4 +1,4 @@
-import { test as base } from '../index.js';
+import { test as base } from '../setup.js';
 
 export interface ConnectedIframe extends HTMLIFrameElement {
   contentDocument: Document;

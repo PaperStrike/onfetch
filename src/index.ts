@@ -1,6 +1,7 @@
 import mockFetchOn, { Context, Onfetch, OnfetchCall } from './core.js';
 import type MSWInterceptors from './lib/MSWInterceptors/index.js';
 import type Channel from './lib/SW/Channel.js';
+import type WPRoute from './lib/WPRoute/index.js';
 
 // Export core package
 export * from './core.js';
@@ -13,6 +14,7 @@ const isInNode = typeof process !== 'undefined' && process?.release?.name === 'n
 // Lib clients. Initialize when needed.
 const channelMap = new Map<ServiceWorkerContainer, Channel>();
 let mswInterceptors: MSWInterceptors;
+let wpRoute: WPRoute;
 
 // Context helpers.
 export interface ContextHelpers {
@@ -31,6 +33,7 @@ fetchMock.activate();
 const onfetch: OnfetchCall & Omit<Onfetch, keyof ContextHelpers | 'adopt'> & {
   useServiceWorker(serviceWorkerContainer?: ServiceWorkerContainer): Promise<void>;
   useMSWInterceptors(): Promise<void>;
+  useWrightplayRoute(): Promise<void>;
   useAutoAdvanced(): Promise<void>;
   useDefault(): Promise<void>;
   isActive(): boolean;
@@ -76,6 +79,22 @@ const onfetch: OnfetchCall & Omit<Onfetch, keyof ContextHelpers | 'adopt'> & {
 
       fetchMock.config({
         bypassRedirect: true,
+      });
+    },
+
+    async useWrightplayRoute() {
+      if (!wpRoute) {
+        if (isInNode) {
+          throw new Error('Environment not compatible with wrightplay route mode');
+        }
+        const WPRoute = (await import('./lib/WPRoute/index.js')).default;
+        wpRoute = new WPRoute();
+      }
+
+      await this.adopt(wpRoute, wpRoute);
+
+      fetchMock.config({
+        bypassRedirect: false,
       });
     },
 

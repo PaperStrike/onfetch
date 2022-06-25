@@ -1,6 +1,6 @@
 import { iframeTest, registerServiceWorker } from './helpers.js';
-import { expect } from '../index.js';
-import onfetch from '../../src/index.js';
+import { expect } from '../setup.js';
+import onfetch, { mode } from '../e2e.setup.js';
 
 const test = iframeTest.extend({
   // Switch onfetch context for e2e iframe tests.
@@ -22,8 +22,9 @@ const test = iframeTest.extend({
   },
 });
 
-test.describe('browser e2e', () => {
+test.describe('sw e2e', function swE2E() {
   test.beforeAll(async () => {
+    if (mode !== 'sw') this.ctx.skip();
     await onfetch.useServiceWorker();
   });
   test.afterAll(async () => {
