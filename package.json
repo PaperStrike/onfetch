@@ -7,7 +7,7 @@
   "type": "module",
   "browser": {
     "./src/lib/MSWInterceptors/index.js": false,
-    "./build/lib/MSWInterceptors": false,
+    "./build/lib/MSWInterceptors/index.js": false,
     "./test/node/setup.js": false,
     "jest-message-util": false,
     "jest-util": false,
