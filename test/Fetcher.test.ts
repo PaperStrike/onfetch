@@ -1,4 +1,4 @@
-import { expect, test } from './index.js';
+import { expect, test } from './setup.js';
 import Fetcher from '../src/Fetcher.js';
 
 const fetcherTest = test.extend<{ fetcher: Fetcher }>({

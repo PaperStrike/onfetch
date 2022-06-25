@@ -1,4 +1,4 @@
-import { test, expect } from './index.js';
+import { test, expect } from './setup.js';
 import InterceptRule, { Reply } from '../src/InterceptRule.js';
 
 test.describe('matching', () => {

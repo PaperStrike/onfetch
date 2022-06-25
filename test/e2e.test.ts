@@ -1,12 +1,18 @@
-import { test, expect } from './index.js';
-import onfetch, { passThrough } from '../src/index.js';
+import { test, expect } from './setup.js';
+import onfetch, { passThrough, mode } from './e2e.setup.js';
 
 test.describe('e2e', () => {
   test.beforeAll(async () => {
-    await onfetch.useAutoAdvanced();
+    if (mode === 'wp') {
+      await onfetch.useWrightplayRoute();
+    } else {
+      await onfetch.useAutoAdvanced();
+    }
+    await onfetch.activate();
   });
   test.afterAll(async () => {
     await onfetch.useDefault();
+    await onfetch.restore();
   });
 
   test('basic', async () => {

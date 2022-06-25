@@ -10,17 +10,19 @@
     "./build/lib/MSWInterceptors": false,
     "./test/node/setup.js": false,
     "jest-message-util": false,
-    "jest-util": false
+    "jest-util": false,
+    "mocha": "mocha/mocha.js"
   },
   "exports": {
     ".": "./build/index.js",
     "./sw": "./build/sw.js",
     "./core": "./build/core.js",
     "./lib/*": "./build/lib/*.js",
+    "./lib/*/": "./build/lib/*/index.js",
     "./package.json": "./package.json"
   },
   "typesVersions": {
-    "*": {
+    "<4.7": {
       ".": [
         "./build/index.d.ts"
       ],
@@ -36,9 +38,10 @@
     "build": "tsc",
     "lint": "eslint .",
     "prepare": "npm run build",
-    "test-browser": "playwright-test \"test/**/*.test.*\" \"!test/**/node\" --sw src/sw.ts",
+    "test-browser": "wrightplay \"test/**/*.test.*\" \"!test/**/node\" sw=test/browser/sw.ts",
     "test-node": "mocha --experimental-abortcontroller",
-    "test": "npm run test-browser && npm run test-node"
+    "test-wp": "wrightplay \"test/**/*.test.*\" \"!test/**/node\"",
+    "test": "npm run test-browser && npm run test-node && npm run test-wp"
   },
   "files": [
     "build"
@@ -57,10 +60,14 @@
   "repository": "github:PaperStrike/onfetch",
   "license": "ISC",
   "peerDependencies": {
-    "@mswjs/interceptors": "~0.16.2"
+    "@mswjs/interceptors": "~0.16.2",
+    "wrightplay": "^0.3.3"
   },
   "peerDependenciesMeta": {
     "@mswjs/interceptors": {
+      "optional": true
+    },
+    "wrightplay": {
       "optional": true
     }
   },
@@ -79,9 +86,9 @@
     "mocha": "^10.0.0",
     "node-fetch": "^3.2.6",
     "playwright-fixtures": "^0.3.5",
-    "playwright-test": "^8.1.1",
     "sirv": "^2.0.2",
     "ts-node": "^10.8.1",
-    "typescript": "^4.7.4"
+    "typescript": "^4.7.4",
+    "wrightplay": "^0.3.3"
   }
 }
