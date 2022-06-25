@@ -1,15 +1,13 @@
-import {
-  pageRoute,
-  pageUnroute,
-  bypassFetch,
-  RouteHandlerCallback,
-} from 'wrightplay';
+import type * as wrightplay from 'wrightplay';
 
 export default class WPRoute {
-  // eslint-disable-next-line class-methods-use-this
-  fetch: typeof fetch = (...args) => bypassFetch(...args);
+  constructor(
+    private readonly wp: typeof wrightplay,
+  ) {}
 
-  readonly handler: RouteHandlerCallback = async (route, routeRequest) => {
+  fetch: typeof fetch = (...args) => this.wp.bypassFetch(...args);
+
+  readonly handler: wrightplay.RouteHandlerCallback = async (route, routeRequest) => {
     const request = new Request(routeRequest.url(), {
       body: routeRequest.postDataBlob(),
       headers: routeRequest.headersArray().map(({ name, value }) => [name, value]),
@@ -20,10 +18,10 @@ export default class WPRoute {
   };
 
   async activate() {
-    await pageRoute('', this.handler);
+    await this.wp.pageRoute('', this.handler);
   }
 
   async restore() {
-    await pageUnroute('', this.handler);
+    await this.wp.pageUnroute('', this.handler);
   }
 }
