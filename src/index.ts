@@ -93,8 +93,8 @@ const onfetch: OnfetchCall & Omit<Onfetch, keyof ContextHelpers | 'adopt'> & {
         // Node.js libs don't need this as they can be safely fully excluded by using
         // package browser field.
         try {
-          const WPRoute = (await import('./lib/WPRoute/index.js')).default;
           const wp = await import('wrightplay');
+          const WPRoute = (await import('./lib/WPRoute/index.js')).default;
           wpRoute = new WPRoute(wp);
         } catch (e) {
           throw new Error('Failed load wrightplay route lib. Have you installed "wrightplay"?', { cause: e as Error });
