@@ -8,13 +8,15 @@ export default class WPRoute {
   fetch: typeof fetch = (...args) => this.wp.bypassFetch(...args);
 
   readonly handler: wrightplay.RouteHandlerCallback = async (route, routeRequest) => {
-    const request = new Request(routeRequest.url(), {
+    const headers = routeRequest.allHeaders();
+    const requestInit: RequestInit = {
+      method: routeRequest.method(),
       body: routeRequest.postDataBlob(),
-      headers: routeRequest.headersArray().map(({ name, value }) => [name, value]),
-    });
-    await route.fulfill({
-      response: await this.fetch(request),
-    });
+      headers,
+      referrer: headers.referer,
+    };
+    const response = await this.fetch(new Request(routeRequest.url(), requestInit));
+    await route.fulfill({ response });
   };
 
   async activate() {
